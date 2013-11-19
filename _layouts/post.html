@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <title>{{ page.title }} - {{ site.title }}</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="{{ site.baseurl }}/{{ site.feed }}" />
+  <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/css/post.css">
 </head>
 <body>
   <article>
@@ -13,5 +14,8 @@
     </header>
     {{ content }}
   </article>
+  <nav>
+    <a href="{{ site.baseurl }}/">インデックス</a>
+  </nav>
 </body>
 </html>

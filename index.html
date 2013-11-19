@@ -1,9 +1,13 @@
 ---
-layout: default
+layout: index
 ---
 <h1>{{ site.title }}</h1>
-<ul>
+<ul id="posts">
   {% for post in site.posts %}
-  <li><a href="{{ post.url }}">{{ post.title }}</a> - <time datetime="{{ post.date | date_to_valid_date_string }}">{{ post.date | date_to_ja_string }}</time></li>
+  <li><time datetime="{{ post.date | date_to_valid_date_string }}">{{ post.date | date_to_ja_string }}</time> <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
   {% endfor %}
 </ul>
+
+<nav>
+  <a href="{{ site.baseurl }}/{{ site.feed }}">フィード</a> / <a href="{{ site.baseurl }}/about.html">このサイトについて</a>
+</nav>

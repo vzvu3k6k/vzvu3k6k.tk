@@ -1,2 +1,5 @@
-*~
+css/.sass-cache/
+build/
 _site
+_drafts
+__*
