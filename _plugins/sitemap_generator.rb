@@ -34,6 +34,8 @@
 # Site: http://www.kinnetica.com
 # Distributed Under A Creative Commons License
 #   - http://creativecommons.org/licenses/by/3.0/
+#
+# A part of its code is modified by vzvu3k6k.
 
 require 'rexml/document'
 
@@ -80,7 +82,7 @@ module Jekyll
 
     def location_on_server(my_url)
       location = "#{my_url}#{@dir}#{url}"
-      location.gsub(/index.html$/, "")
+      # location.gsub(/index.html$/, "")
     end
   end
 
