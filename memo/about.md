@@ -3,5 +3,5 @@ layout: default
 title: このサイトについて
 ---
 
-  * [フィード]({{ site.baseurl }}/{{ site.feed }})
+  * [フィード]({{ site.baseurl }}{{ site.feed }})
   * [連絡先（メールアドレス）]({{ site.author.mailhide }})

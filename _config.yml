@@ -1,6 +1,8 @@
 title: 記録
 description: vzvu3k6k
-baseurl: http://vzvu3k6k.tk/memo
+baseurl: /memo/
+url: http://vzvu3k6k.tk
+permalink: /memo/:year/:month/:day/:title.html
 feed: atom.xml
 author:
   name: vzvu3k6k
