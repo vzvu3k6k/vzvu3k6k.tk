@@ -9,4 +9,4 @@ author:
 
 markdown: rdiscount
 
-exclude: [spec, Gemfile, Gemfile.lock, config.ru]
+exclude: [spec, Gemfile, Gemfile.lock, config.ru, build]
