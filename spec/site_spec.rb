@@ -29,11 +29,20 @@ module Sitespec
   end
 end
 
-
-Sitespec.configuration.application = Rack::Jekyll.new(baseurl: "")
+Sitespec.configuration.application = Rack::Jekyll.new(baseurl: "").instance_eval do
+  @mimes << %r[^/CNAME$]
+  self
+end
 
 describe "This site" do
   include Sitespec
+
+  it "provides the following files" do
+    get "/index.html"
+    get "/CNAME"
+    get "/robots.txt"
+  end
+
   it "provides the sitemap" do
     get "/sitemap.xml"
 

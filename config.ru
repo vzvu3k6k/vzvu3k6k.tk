@@ -1,4 +1,9 @@
 require "rack/jekyll"
 require 'pry'
 
-run Rack::Jekyll.new(baseurl: "")
+app = Rack::Jekyll.new(baseurl: "").instance_eval do
+  @mimes << %r[^/CNAME$]
+  self
+end
+
+run app
