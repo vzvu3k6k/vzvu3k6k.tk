@@ -38,7 +38,7 @@ module Sitespec
   alias process process_once
 end
 
-Sitespec.configuration.application = Rack::Jekyll.new(baseurl: "").instance_eval do
+Sitespec.configuration.application = Rack::Jekyll.new.instance_eval do
   @mimes << %r[^/CNAME$]
   self
 end
