@@ -11,7 +11,7 @@ module Sitespec
 
     if @response.status == 200 && @response.header["Content-Type"] == "text/html"
       extract_urls(@response.body, path).each do |url|
-        get url
+        get_with_resources url unless @processed_paths[url]
       end
     end
   end
@@ -27,6 +27,15 @@ module Sitespec
     site_urls = urls.reject {|url| url.match(%r[^(\w+:|//)]) }
                     .map {|url| URI.join("http://example.org", current_path, url).path }
   end
+
+  def process_once(*args)
+    path = args[1]
+    @processed_paths ||= {}
+    @processed_paths[path] ||= _process(*args)
+  end
+
+  alias _process process
+  alias process process_once
 end
 
 Sitespec.configuration.application = Rack::Jekyll.new(baseurl: "").instance_eval do
