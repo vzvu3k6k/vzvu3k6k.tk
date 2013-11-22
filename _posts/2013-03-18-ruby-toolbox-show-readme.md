@@ -5,7 +5,7 @@ title: Ruby ToolboxでプロジェクトのREADMEをその場で開くユーザ�
 
 [vzvu3k6k / ruby-toolbox-show-readme.user.js](https://github.com/vzvu3k6k/ruby-toolbox-show-readme.user.js)
 
-<img src="{{ site.baseurl }}/img/ruby-toolbox-show-readme-image.png">
+<img src="{{ site.baseurl }}img/ruby-toolbox-show-readme-image.png">
 
 Rubyのライブラリをジャンルごとに分類して人気順に配列している[The Ruby Toolbox](https://www.ruby-toolbox.com/)。便利なんだけど、ライブラリの説明文が大雑把すぎてそれぞれの違いがよく分からないことがある。READMEをその場で読めれば便利なのではないかと思って作った。虫眼鏡アイコンをクリックすると、GithubのAPIでリポジトリからREADMEが取得され、挿入される。
 

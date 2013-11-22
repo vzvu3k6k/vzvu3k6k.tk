@@ -6,7 +6,7 @@ title: SlideShareのスライドをタイル状に表示するユーザースク
 [vzvu3k6k/slideshare-tileview.user.js · GitHub](https://github.com/vzvu3k6k/slideshare-tileview.user.js)
 
 <a href="http://www.slideshare.net/Erdbeervogel/coaching-for-life-aka-agile-coaching-sure-thing-what-about-life-coaching-in-agile-thinking">
-  <img alt="高度に発達したパワーポイントはスタイリッシュ写真集と区別がつかない。" src="{{ site.baseurl }}/img/slideshare-tileview.png" class="thumbnail">
+  <img alt="高度に発達したパワーポイントはスタイリッシュ写真集と区別がつかない。" src="{{ site.baseurl }}img/slideshare-tileview.png" class="thumbnail">
 </a>
 
 スライドをざっと見渡すのに便利。右下のボタンをクリックするとタイル表示モードになる。スライドをクリックすると通常のモードで見れる。
