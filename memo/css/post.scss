@@ -4,25 +4,25 @@ body {
     max-width: 55em;
 
     header {
-	h1 {
-	    margin-bottom: 0.5ex;
-	}
+		h1 {
+			margin-bottom: 0.5ex;
+		}
 
-	time {
-	    display: block;
-	    float: right;
-	}
+		time {
+			display: block;
+			float: right;
+		}
 
-	&:after {
-	    clear: both;
-	    content: "";
-	    display: block;
-	}
+		&:after {
+			clear: both;
+			content: "";
+			display: block;
+		}
     }
 
     img {
-	border: thin double #AAA;
-	margin: 0 1ex;
+		border: thin double #AAA;
+		margin: 0 1ex;
     }
     .thumbnail {
         max-width: 75%;
@@ -30,20 +30,20 @@ body {
     }
 
     pre, code {
-	background-color: #F0F0F0;
-	border-radius: 0.2em;
+		background-color: #F0F0F0;
+		border-radius: 0.2em;
     }
 
     pre {
-	padding: 0.3em;
+		padding: 0.3em;
     }
 
     code {
-	padding: 0;
+		padding: 0;
     }
 
     nav {
-	margin-top: 2em;
+		margin-top: 2em;
         clear: both;
     }
 }
