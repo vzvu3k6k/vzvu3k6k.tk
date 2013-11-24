@@ -45,5 +45,10 @@ body {
     nav {
 		margin-top: 2em;
         clear: both;
+
+		.send-pullreq {
+			font-size: small;
+			float: right;
+		}
     }
 }
