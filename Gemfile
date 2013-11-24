@@ -1,13 +1,17 @@
 source 'http://rubygems.org'
 
-gem 'jekyll'
-gem 'rack-jekyll'
-
-group :jekyll_build do
+group :jekyll do
+  gem 'jekyll'
   gem 'jekyll-sass'
+  gem 'rdiscount'
 end
 
-gem 'pry'
-gem 'rdiscount'
-gem 'sitespec'
-gem 'nokogiri'
+group :test do
+  gem 'sitespec'
+  gem 'rack-jekyll'
+  gem 'nokogiri'
+end
+
+group :development do
+  gem 'pry'
+end
