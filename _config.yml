@@ -2,6 +2,7 @@ title: 記録
 description: vzvu3k6k
 baseurl: /memo/
 url: http://vzvu3k6k.tk
+repository: https://github.com/vzvu3k6k/vzvu3k6k.github.com/
 permalink: /memo/:year/:month/:day/:title.html
 feed: atom.xml
 author:
@@ -10,5 +11,10 @@ author:
   mailhide: http://www.google.com/recaptcha/mailhide/d?k=01Jtza220vCJ3GghRBqzxWuA==&c=FN3HMylmhSPQOyHxZNbCZl95-QlC2ep1WUsa2Azom9I=
 
 markdown: rdiscount
+
+sass:
+  style: expanded
+  deploy_style: compressed
+  compile_in_place: false
 
 exclude: [spec, Gemfile, Gemfile.lock, config.ru, build]
