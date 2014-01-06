@@ -13,10 +13,15 @@
       <time datetime="{{ page.date | date_to_valid_date_string}}">{{ page.date | date_to_ja_string }}</time>
     </header>
     {{ content }}
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        {% git_log %}
+      </div>
+    </footer>
   </article>
   <nav>
-    <a href="{{ site.baseurl }}index.html">インデックス</a>
-    <a class="send-pullreq" href="{{ site.repository }}blob/source/{{ page.path }}">Send a pullreq</a>
+    <a href="{{ site.baseurl }}index.html">目次</a>
   </nav>
 </body>
 </html>

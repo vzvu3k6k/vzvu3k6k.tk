@@ -51,4 +51,14 @@ body {
 			float: right;
 		}
     }
+
+	article footer {
+		border-top: thin solid gray;
+
+		.changelog {
+			h2 {
+				font-size: 100%;
+			}
+		}
+	}
 }
