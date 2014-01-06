@@ -15,3 +15,8 @@ JavaScriptから[GitHubのAPI](http://developer.github.com/v3/repos/commits/)を
 「マークアップを変えた」みたいな本質的ではない変更まで履歴に表示されるのが気にならなくもない。更新履歴に出したくないコミットのメッセージには`[minorfix]`という文字列を入れる、みたいなルールを決めるといいかもしれない。
 
 ところで、Gitのコミットログは改変できるし、GitHub上のリポジトリも`git push -f`で上書きできるので、GitHubのHistoryは何の保証にもならない。「こっそり記事を書き換えただろ」と言われると反証するのが難しい気がする。この点については更新履歴を保存してない大多数の他のブログサービスと変わりがない。
+
+## 使い方
+
+1. [_plugins/git_log.rb](https://github.com/vzvu3k6k/vzvu3k6k.github.com/tree/source/_plugins/git_log.rb)をコピーして、ソース内のURLを修正する。
+2. [_layout/post.html](https://github.com/vzvu3k6k/vzvu3k6k.github.com/tree/source/_layouts/post.html)のように、更新履歴を表示したいページに`{% git_log %}`を挿入する。
