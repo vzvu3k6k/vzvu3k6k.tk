@@ -4,7 +4,7 @@ group :jekyll do
   gem 'jekyll'
   gem 'jekyll-sass'
   gem 'rdiscount'
-  gem 'git'
+  gem 'grit'
 end
 
 group :test do

@@ -1,4 +1,5 @@
-require 'git'
+require 'grit'
+require 'time'
 require 'webrick/htmlutils'
 
 module Jekyll
@@ -9,13 +10,13 @@ module Jekyll
 
     def render(context)
       path = context.environments[0]["page"]["path"]
-      commit_hashes = `git log --format="%H" --follow -- #{Shellwords.escape(path)}`.split
-      repo = Git.open(".")
-      commit_objects = commit_hashes.map(&repo.method(:object))
+      log = `git log --format=raw --follow -- #{Shellwords.escape(path)}`
+      repo = Grit::Repo.new(".")
+      commits = Grit::Commit.list_from_string(repo, log)
 
-      result = %q{<ul class="history">}
-      commit_objects.each do |i|
-        sha, datetime, message = [i.sha, i.date.iso8601, i.message.split("\n").first].map(&WEBrick::HTMLUtils.method(:escape))
+      result = %q{<ul>}
+      commits.each do |i|
+        sha, datetime, message = [i.id, i.authored_date.iso8601, i.short_message].map(&WEBrick::HTMLUtils.method(:escape))
         result << %Q{<li><a href="https://github.com/vzvu3k6k/vzvu3k6k.github.com/commit/#{sha}"><time>#{datetime}</time> <span>#{message}</span></a></li>}
       end
       result << %q{</ul>}
