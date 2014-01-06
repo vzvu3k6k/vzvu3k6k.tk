@@ -19,4 +19,4 @@ JavaScriptから[GitHubのAPI](http://developer.github.com/v3/repos/commits/)を
 ## 使い方
 
 1. [_plugins/git_log.rb](https://github.com/vzvu3k6k/vzvu3k6k.github.com/tree/source/_plugins/git_log.rb)をコピーして、ソース内のURLを修正する。
-2. [_layout/post.html](https://github.com/vzvu3k6k/vzvu3k6k.github.com/tree/source/_layouts/post.html)のように、更新履歴を表示したいページに`{% git_log %}`を挿入する。
+2. [_layout/post.html](https://github.com/vzvu3k6k/vzvu3k6k.github.com/tree/source/_layouts/post.html)のように、更新履歴を表示したいページに<code>{&#37; git_log &#37;}</code>を挿入する。
