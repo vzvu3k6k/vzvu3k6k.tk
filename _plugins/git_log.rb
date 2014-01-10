@@ -11,15 +11,17 @@ module Jekyll
     end
 
     def render(context)
-      path = context.environments[0]["page"]["path"]
+      env = context.environments[0]
+
+      path = env["page"]["path"]
       log = `git log --format=raw --follow -- #{Shellwords.escape(path)}`
       repo = Grit::Repo.new(".")
       commits = Grit::Commit.list_from_string(repo, log)
 
       result = %q{<ul>}
       commits.each do |i|
-        sha, datetime, message = [i.id, i.authored_date.iso8601, i.short_message].map(&WEBrick::HTMLUtils.method(:escape))
-        result << %Q{<li><a href="https://github.com/vzvu3k6k/vzvu3k6k.github.com/commit/#{sha}"><time>#{datetime}</time> <span>#{message}</span></a></li>}
+        id, datetime, message = [i.id, i.authored_date.iso8601, i.short_message].map(&WEBrick::HTMLUtils.method(:escape))
+        result << %Q{<li><a href="#{env["site"]["commit_permalink"].sub("{id}", id)}"><time>#{datetime}</time> <span>#{message}</span></a></li>}
       end
       result << %q{</ul>}
     end

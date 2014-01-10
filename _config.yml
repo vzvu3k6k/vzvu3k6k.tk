@@ -2,7 +2,7 @@ title: 記録
 description: vzvu3k6k
 baseurl: /memo/
 url: http://vzvu3k6k.tk
-repository: https://github.com/vzvu3k6k/vzvu3k6k.github.com/
+commit_permalink: https://github.com/vzvu3k6k/vzvu3k6k.github.com/commit/{id}
 permalink: /memo/:year/:month/:day/:title.html
 feed: atom.xml
 author:
