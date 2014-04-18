@@ -5,7 +5,7 @@ title: 軽量マークアップ言語の拡張
 
 世間には[AsciiDoc](http://www.methods.co.nz/asciidoc/), [reStructuredText](http://docutils.sourceforge.net/rst.html), [markdown](http://daringfireball.net/projects/markdown/)といった多種多様な軽量マークアップ言語が存在する。頭ひとつ抜けた感のあるmarkdownの中でも、[Markdown Extra](http://michelf.ca/projects/php-markdown/extra/), [MultiMarkdown](http://fletcherpenney.net/multimarkdown/), [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown)などの亜種変種がひしめきあっている。
 
-あらゆるニーズを満たす軽量マークアップ言語は作りようがないし、それぞれのアプリケーション固有の機能が必要になることもある。mention機能（`@username`と書いたらユーザーページにリンクされるようにして、言及されたユーザーには通知を出す）とか。
+あらゆるニーズを満たす軽量マークアップ言語は作りようがないし、それぞれのアプリケーション固有の機能が必要になることもある。たとえばmention機能（`@username`と書いたらユーザーページにリンクされるようにして、言及されたユーザーには通知を出す）とか。
 
 既存のマークアップ言語に拡張機能を追加するのはそれほど容易ではない。正規表現などで適当に置換してしまうと、他の機能と衝突して予期しない結果を生むことがある。たとえば前述のmention機能を実装するとき、`source.gsub(/@(\w+)/, '<a href="/users/\1">@\1</a>')`などとしてしまうと、`[email](mailto:admin@example.com)`や``ここで`@source`というインスタンス変数が…``といったテキストにも反応してしまい、ユーザーの期待とは異なる出力になる。
 
@@ -51,7 +51,7 @@ directiveとroleという拡張性のある構文が用意されている。
 
 ## 所感
 
-拡張されたmarkdownの仕様とreSTの仕様は結構重複している。reSTとか仕様大きすぎるよね、markdownぐらいシンプルなのがいいよねという感じで普及したあと、大規模な文書もmarkdownで書きたい、機能が足りないからどんどん拡張しよう！と頑張ったらreSTみたいなものがいくつも出来てしまったという感じなのかもしれない。
+拡張されたmarkdownの仕様とreSTの仕様は結構重複している。「reSTとか仕様大きすぎるよね、markdownぐらいシンプルなのがいいよね」という感じで普及したあと、「大規模な文書もmarkdownで書きたい、機能が足りないからどんどん拡張しよう！」と頑張ったらreSTみたいなものがいくつも出来てしまったという感じなのかもしれない。
 
 直接markdownに[数式記法を追加](http://qiita.com/Qiita/items/c686397e4a0f4f11683d#2-9)したりするより、プレーンなmarkdownにreSTの構文を部分的に導入したほうがいいんじゃないかという気もする。[reSTはdirectiveとroleで数式を記述できる](http://docutils.sourceforge.net/FAQ.html#how-can-i-include-mathematical-equations-in-documents)。
 
