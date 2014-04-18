@@ -50,6 +50,7 @@ describe "This site" do
     get "/index.html"
     get "/CNAME"
     get "/robots.txt"
+    get "/memo/2014/05/02/extensive-lightweight-markup-languages.html"
   end
 
   it "provides the sitemap" do
