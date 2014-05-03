@@ -12,17 +12,27 @@ title: Tumblrの省メモリーな無限スクロール
 関連するコードは[https://secure.assets.tumblr.com/assets/scripts/dashboard.js](https://secure.assets.tumblr.com/assets/scripts/dashboard.js)の`/*! scripts/ghostlist.js */`や`/*! scripts/fast_dashboard.js */`の付近にある。具体的には、表示領域から大きく外れたポストの子要素に対して
 
 1. imgのsrcには一時的にダミーのgif画像を入れる
-2. DOMノードをクロージャー内の変数に保持して、ページ上からは削除
+2. `jQuery.browser.mozilla`が真なら、DOMノードをクロージャー内の変数に保持してページ上からは削除する。偽なら`node.style.display = "none"`で非表示にする。
 
-という処理をしている。表示領域に入ったら、削除していたノードの再挿入などを行なって復元する。そのほかに一時的に退避させたbackground-image属性を復元する関数もあったが、属性を退避させるコードはどこにあるのか分からなかった。再生中の動画や音楽コンテンツについても、再生が終わるまで待たず、普通にページ上から削除しているようだ。
+という処理をしている。表示領域に入ったらノードが復元される。`jQuery.browser.mozilla`が真の場合にはaudioやvideoのポストには処理が行われない。これはスクロールすると動画や音楽が勝手に停止したり、再生位置が失われたりするのを防ぐためだと思う。そのほかに一時的に退避させたbackground-image属性を復元する関数もあったが、属性を退避させるコードはどこにあるのか分からなかった。
 
-ノードを削除する関数などが、自分の行った処理を復元する関数を返すようになっているのが面白い。ノードをそのまま返すのではなくfunctionで包むぶん、少しだけメモリーを余分に使いそうな気がする。その一方、クロージャーに内包される不要な変数にはこまめにnullを代入してメモリーの浪費を抑えている。
+実装面では、ノードを隠す関数の返り値が自分の行った処理を復元する関数になっているのが面白い。ノードをそのまま返すのではなくfunctionで包むぶん、少しだけメモリーを余分に使いそうな気がする。その一方、クロージャーに内包される不要な変数にはこまめにnullを代入してメモリーの浪費を抑えている。
 
-この機能はghostlistという名前で実装されている。"infinite scroll ghostlist"や"auto paging ghostlist"でググってみたが、[atesh/ghostlist · GitHub](https://github.com/atesh/ghostlist/)の他には似たものが見つからない。
+この機能はghostlistという名前で実装されているが、一般的な名称ではないらしく、"infinite scroll ghostlist"や"auto paging ghostlist"でググってみても、[atesh/ghostlist · GitHub](https://github.com/atesh/ghostlist/)ぐらいしか見つからなかった。
 
 ## 2番目の処理について
 
-2番目の処理は本当に効果があるのか疑問だったので実験してみた。Chromeのdevtoolのtimelineを使ってメモリーの使用量を確認する。適当なページを開いて、まず`Array.prototype.slice.call(document.querySelectorAll('img'), 0).forEach(function(i){i.remove()})`で画像を消し（1に相当）、GCを走らせる。それから`a = Array.prototype.slice.call(document.body.children, 0).map(function(i){i.remove(); return i})`でbodyの子要素を退避（2に相当）。GCを走らせた直後と子要素を退避させた後のメモリーの使用量の差を確かめる。
+2番目の処理は本当に効果があるのか疑問だったので実験してみた。Chromeのdevtoolのtimelineを使ってメモリーの使用量を確認する。
+
+### `display = "none"`
+
+GCを実行したあと、`document.body.style.display = "none"`や`Array.prototype.forEach.call(document.body.children, function(i){i.style.display = "none"})`などを実行してみたが、特に変化がない気がする。
+
+### ノードを変数で保持してページ上から削除
+
+Firefoxで検証するべきだが、とりあえずChromeを使って調べた。
+
+適当なページを開いて、まず`Array.prototype.slice.call(document.querySelectorAll('img'), 0).forEach(function(i){i.remove()})`で画像を消し（1に相当）、GCを実行する。それから`a = Array.prototype.slice.call(document.body.children, 0).map(function(i){i.remove(); return i})`でbodyの子要素を退避（2に相当）。GCを実行した直後と子要素を退避させた後のメモリーの使用量の差を確かめる。
 
 <dl>
   <dt><a href="http://www.nicovideo.jp/">http://www.nicovideo.jp/</a></dt>
@@ -35,7 +45,7 @@ title: Tumblrの省メモリーな無限スクロール
   <dd>効果なし。微妙に使用量が増える。</dd>
 </dl>
 
-華やかなページでは効果が見られるが、テキスト主体のシンプルなページでは意味がないようだ。
+グラフィカルなページではメモリーの使用量を抑える効果が見られるが、テキスト主体のシンプルなページでは意味がないようだ。
 
 ## 関連
 
