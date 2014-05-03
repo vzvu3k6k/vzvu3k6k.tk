@@ -7,7 +7,7 @@ title: Tumblrの省メモリーな無限スクロール
 
 なかでもTumblrは画像などのコンテンツが多いため、ダッシュボードダイバーたちは[無限Tumblrユーザースクリプト](http://joodle.tumblr.com/post/14352059524/supertumblr)などのユーザースクリプトをインストールして、読み終えたコンテンツを定期的にページ上から自動削除するといった対策を講じていた。
 
-ところが最近のTumblrのダッシュボードでは、ポストが画面外に出るとその中の要素が一時的にページから削除され、画面内に表示されると要素が再度挿入されるようになっている。どうやらこれによって無限スクロールによるメモリーの圧迫が抑えられているらしい。
+ところが最近のTumblrのダッシュボードでは、ポストが画面外に出るとその中の要素が一時的にページから削除され、画面内に表示されると要素が再度復元されるようになっている。どうやらこれによって無限スクロールによるメモリーの圧迫が抑えられているらしい。
 
 関連するコードは[https://secure.assets.tumblr.com/assets/scripts/dashboard.js](https://secure.assets.tumblr.com/assets/scripts/dashboard.js)の`/*! scripts/ghostlist.js */`や`/*! scripts/fast_dashboard.js */`の付近にある。具体的には、表示領域から大きく外れたポストの子要素に対して
 
@@ -26,11 +26,11 @@ title: Tumblrの省メモリーな無限スクロール
 
 2番目の処理は本当に効果があるのか疑問だったので実験してみた。Chromeのdevtoolのtimelineを使ってメモリーの使用量を確認する。
 
-### `display = "none"`
+### `display = "none"`方式
 
 GCを実行したあと、`document.body.style.display = "none"`や`Array.prototype.forEach.call(document.body.children, function(i){i.style.display = "none"})`などを実行してみたが、特に変化がない気がする。
 
-### ノードを変数で保持してページ上から削除
+### ノードを変数で保持してページ上から削除する方式
 
 Firefoxで検証するべきだが、とりあえずChromeを使って調べた。
 
