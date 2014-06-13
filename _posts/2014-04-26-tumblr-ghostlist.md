@@ -24,7 +24,18 @@ title: Tumblrの省メモリーな無限スクロール
 
 ## 2番目の処理について
 
-2番目の処理は本当に効果があるのか疑問だったので実験してみた。Chromeのdevtoolのtimelineを使ってメモリーの使用量を確認する。
+2番目の処理は本当に効果があるのか疑問だったので、Chromeのdevtoolのtimelineを使ってメモリーの使用量を確認した。
+
+ただし、
+
+<blockquote>
+  <p>display noneするとRenderTreeから要素が消えるからその分はメモリ減るかな。メモリ使用量をどうやって測っているのかきになる。V8ヒープ領域のみ見ているように見える。</p>
+  <footer>
+    — <a href="http://b.hatena.ne.jp/nyaxt/20140613#bookmark-199467470">b:id:nyaxt:20140613</a>
+  </footer>
+</blockquote>
+
+とのことで、この方法では正しくメモリーの使用量が測れていないらしい。
 
 ### `display = "none"`方式
 
