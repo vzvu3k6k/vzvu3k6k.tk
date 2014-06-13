@@ -46,14 +46,8 @@ rbenvで2.0系のリリース版を入れる。gemをインストールしなお
 
 ## プルリクを送る
 
-当初の目的からずいぶん離れてしまったので、とにかくfeed.xmlを修正するプルリクを送った。descriptionを書き足すために編集画面を開こうとしたら、GitHubがおかしい。プルリクエストの一覧のところが、急におかしくなった……このリポジトリ、送ったはずのプルリクが……ぜんぜんない。
-
-![はっ！]({{ site.baseurl }}img/already-merged.png)
-
-なるほどうわはははははは「[マージ](https://github.com/r7kamura/r7kamura.github.io/pull/1)」されていましたァァぁぁいつの間にかァァ
-
-[github-stream](https://github.com/r7kamura/github-stream)とかでGitHubの通知をリアルタイムで確認して、即座に対応してもらったらしい。その後もいくつかプルリクを送ったら即座にマージされるという感じでテンションが上がったので、[middleman/middleman-blog](https://github.com/middleman/middleman-blog/)にもエイヤッと[Add autodiscovery of feed.xml to layout.erb](https://github.com/middleman/middleman-blog/pull/173)を送ったら、こちらもさくっとマージしてもらえた。
+当初の目的からずいぶん離れてしまったので、とにかくfeed.xmlを修正するプルリクを送った。descriptionを書き足すために編集画面を開こうとしたらすでに[マージ](https://github.com/r7kamura/r7kamura.github.io/pull/1)されていて、その後もいくつかプルリクを送ったら即座にマージされるという感じでテンションが上がったので、[middleman/middleman-blog](https://github.com/middleman/middleman-blog/)にもエイヤッと[Add autodiscovery of feed.xml to layout.erb](https://github.com/middleman/middleman-blog/pull/173)を送ったら、こちらもさくっとマージしてもらえた。
 
 ## その後
 
-フィードリーダーを開いたら[人間の善性とインターネットに対する可能性を感じる記事](http://r7kamura.github.io/2013/11/15/happy-pull-request.html)が出てきた。
+フィードリーダーを開いたら[happyな記事](http://r7kamura.github.io/2013/11/15/happy-pull-request.html)が流れてきた。
