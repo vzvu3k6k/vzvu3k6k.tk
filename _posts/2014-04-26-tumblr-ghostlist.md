@@ -62,6 +62,7 @@ Firefoxで検証するべきだが、とりあえずChromeを使って調べた�
 
 ## 関連
 
+* [XKit - XKit DashboardGL](http://xkit-extension.tumblr.com/post/61016195061/xkit-dashboardgl) - 2013/09/12の記事。1週間ほど前に、画像を隠すことでスクロールを高速化する機能がTumblrに実装されたと報告している。当時はDashboardGLと呼ばれていたようだ。
 * [Infinite Scroll Memory Optimization](http://dannysu.com/2012/07/07/infinite-scroll-memory-optimization/) - 表示領域外の要素を消すというアプローチを取った例。無限スクロールで追加される要素が画像だけなので、画面上からノードを消してJavaScriptの変数として保持するということはしていない。コメント欄に[ソースへのリンク](https://github.com/dannysu/eol-infinite-scroll)がある。
   * ちなみにGoogleの画像検索でも、画面外に出た一部のimg要素のsrc属性を一時的に消しておいて、画面に表示されたらsrcを戻すということをしている。
 * [Autopagerize: Delete old pages - Hatena::Let](http://let.hatelabo.jp/vzvu3k6k/let/hLHX5ZrPpLVS) - Autopagerizeで挿入されたページを最後のもの以外全部消すブックマークレット
