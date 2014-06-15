@@ -55,7 +55,7 @@ directiveとroleという拡張性のある構文が用意されている。
 
 直接markdownに[数式記法を追加](http://qiita.com/Qiita/items/c686397e4a0f4f11683d#2-9)したりするより、プレーンなmarkdownにreSTの構文を部分的に導入したほうがいいんじゃないかという気もする。[reSTはdirectiveとroleで数式を記述できる](http://docutils.sourceforge.net/FAQ.html#how-can-i-include-mathematical-equations-in-documents)。
 
-既存のマークアップ言語にちょっと記法を追加したいときには、HTMLの出力が得られればOKというケースが多いと思うので、html-pipelineのようにHTMLに落としてからDOMをいじるのが手軽で現実的だと思う。ただし既存の構文を拡張するとなるとHTMLに変換してからではうまくいかないこともあるはずで、そういう場合にはパーサーをフックしたり、拡張した構文を自分で部分的にパースしたりということになる。
+HTMLの出力が得られればOKというケースでは、html-pipelineのようにHTMLに落としてからDOMをいじるのが手軽で現実的だと思う。ただし既存の構文を拡張するとなるとHTMLに変換してからではうまくいかないこともあるはずで、そういう場合にはパーサーをフックしたり、拡張した構文を自分で部分的にパースしたりということになる。
 
 ## 元ネタとか
 
