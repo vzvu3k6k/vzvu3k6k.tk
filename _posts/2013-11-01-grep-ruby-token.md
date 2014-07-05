@@ -15,3 +15,4 @@ parserは扱いやすいASTを出力してくれるが、複雑なコードで�
 
 ## 関連
 * [短いメソッドは grep で探すの大変ですよね - Watson's Blog](http://watson1978.github.io/blog/2012/12/09/find-methods/) - ripperを利用したトークン単位のRubyのソースコード検索
+* [RubyScope | End of Line](https://endofline.wordpress.com/2010/04/18/ruby_scope/) - Rubyのソースコード用のgrep的なツール。高度な機能があるらしいが、手元ではうまく動かない。GitHubのリポジトリは2010年で更新が止まっている。パーサーには[ruby_parser](https://rubygems.org/gems/ruby_parser)を使っている。
