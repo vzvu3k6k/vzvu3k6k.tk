@@ -67,3 +67,4 @@ Firefoxで検証するべきだが、とりあえずChromeを使って調べた�
   * ちなみにGoogleの画像検索でも、画面外に出た一部のimg要素のsrc属性を一時的に消しておいて、画面に表示されたらsrcを戻すということをしている。
 * [Autopagerize: Delete old pages - Hatena::Let](http://let.hatelabo.jp/vzvu3k6k/let/hLHX5ZrPpLVS) - Autopagerizeで挿入されたページを最後のもの以外全部消すブックマークレット
 * [Tumblr: Empty trails on dashboard](https://gist.github.com/vzvu3k6k/11295076)というuserscriptを書いててGhostListの存在に気づいた。
+* [無限スクロールの問題点と解決方法 - 記録](http://vzvu3k6k.tk/memo/2014/04/27/better-infinite-scroll.html)
