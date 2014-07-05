@@ -42,3 +42,6 @@ title: Tumblrのダッシュボードとかで潜った位置を記録して再�
 また、[Tumblr Tornado](http://userscripts.org/scripts/show/137667 "Tumblr Tornado for Greasemonkey")は単体で複数の機能を提供するユーザースクリプトだが、auto pagingするとロケーションバーを書き換える機能がある。潜っている位置を保存したければ何も考えずにブックマークするだけでいい。上記のブックマークレットをダッシュボード以外で動作させるにあたって、Tumblr Tornadoの`enhistory`関数が参考になった。
 
 というわけで、わざわざ作る必要もなかった気がしないでもないが、作ってしまったので公開する。ユーザースクリプトをインストールするのが面倒な人とかには需要があるかもしれない。
+
+## 関連
+* [vzvu3k6k/tumblr-set_dashboard_permalink_as_scroll.user.js - GitHub](https://github.com/vzvu3k6k/tumblr-set_dashboard_permalink_as_scroll.user.js) - スクロールに応じてダッシュボードのpermalinkをlocationに設定するユーザースクリプト
