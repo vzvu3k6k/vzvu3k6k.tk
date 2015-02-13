@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <title>
     {% if page.title %}
-    {{ page.title }} - 
+    {{ page.title | xml_escape }} -
     {% endif %}
-    {{ site.title }}
+    {{ site.title | xml_escape }}
   </title>
   <link rel="alternate" type="application/atom+xml" title="Atom feed" href="{{ site.baseurl }}{{ site.feed }}">
 </head>

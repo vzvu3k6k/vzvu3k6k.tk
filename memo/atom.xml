@@ -4,13 +4,13 @@ layout: nil
 <?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
  
-  <title>{{ site.title }}</title>
+  <title>{{ site.title | xml_escape }}</title>
   <link href="{{ site.url }}{{ site.baseurl }}"/>
   <link type="application/atom+xml" rel="self" href="{{ site.url }}{{ page.url }}"/>
   <updated>{{ site.time | date_to_xmlschema }}</updated>
   <id>{{ site.url }}{{ site.baseurl }}</id>
   <author>
-    <name>{{ site.author.name }}</name>
+    <name>{{ site.author.name | xml_escape }}</name>
     <uri>{{ site.url }}/</uri>
   </author>
 
@@ -18,11 +18,11 @@ layout: nil
   <entry>
     <id>{{ site.url }}{{ post.id }}</id>
     <link type="text/html" rel="alternate" href="{{ site.url }}{{ post.url }}"/>
-    <title>{{ post.title }}</title>
+    <title>{{ post.title | xml_escape }}</title>
     <published>{{ post.date | date_to_xmlschema }}</published>
     <updated>{{ post.date | date_to_xmlschema }}</updated>
     <author>
-      <name>{{ site.author.name }}</name>
+      <name>{{ site.author.name | xml_escape }}</name>
       <uri>{{ site.url }}/</uri>
     </author>
     <content type="html">{{ post.content | xml_escape }}</content>
