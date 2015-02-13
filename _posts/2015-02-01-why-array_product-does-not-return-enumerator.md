@@ -49,8 +49,8 @@ match = @characters.product(@colors){|params|
     break params if player.valid?(*params)
 }
 
-# `break`が実行されなかったときには`match == @character`になるので、それをチェックする必要がある。
-match = nil if match == @character
+# `break`が実行されなかったときには`match == @characters`になるので、それをチェックする必要がある。
+match = nil if match == @characters
 ```
 
 CRubyの実装を見てみると、ブロックが渡されているときには組み合わせを一つ生成するごとにブロックを呼んでいるようだから、`find`と`break`を使ったバージョンと同じ程度の効率で動くことが期待できる。
