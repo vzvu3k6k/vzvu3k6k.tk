@@ -72,3 +72,7 @@ match = @characters.to_enum(:product, @colors).find {|params| player.valid?(*par
 `Enumerator#zip`もEnumeratorではなくArrayを返す。self以外の要素が関わっているのが問題なんだろうか。
 
 RubyのChangelogをgrepしてみたがよく分からない。とりあえず、rb_ary_(combination|product|permutation)が追加されたのはSat Sep 29 17:31:04 2007のことらしい。
+
+## 関連
+
+- [つくってみた - I like Ruby too.](http://d.hatena.ne.jp/m_seki/20150211#1423582051): `Array#product`のEnumerable版、`Enumerable#product_enum`の実装。rewindを持つEnumeratorを引数に取ってEnumeratorを返す。
