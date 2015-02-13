@@ -57,7 +57,7 @@ describe "This site" do
     get "/sitemap.xml"
 
     sitemap = Nokogiri::XML.parse(@response.body)
-    locations = (sitemap / "loc").map(&:text)
+    locations = (sitemap / "loc").map(&:text).map(&:strip)
 
     # it provides every page in its sitemap and resource used or referenced in pages
     locations.each do |location|
