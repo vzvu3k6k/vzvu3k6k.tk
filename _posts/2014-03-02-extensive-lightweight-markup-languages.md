@@ -55,7 +55,7 @@ directiveとroleという拡張性のある構文が用意されている。
 
 拡張されたmarkdownの仕様とreSTの仕様は結構重複している。「reSTとか仕様大きすぎるよね、markdownぐらいシンプルなのがいいよね」という感じで普及したあと、「大規模な文書もmarkdownで書きたい、機能が足りないからどんどん拡張しよう！」と頑張ったらreSTみたいなものがいくつも出来てしまったという感じなのかもしれない。
 
-直接markdownに[数式記法を追加](http://qiita.com/Qiita/items/c686397e4a0f4f11683d#2-9)したりするより、プレーンなmarkdownにreSTの構文を部分的に導入したほうがいいんじゃないかという気もする。[reSTはdirectiveとroleで数式を記述できる](http://docutils.sourceforge.net/FAQ.html#how-can-i-include-mathematical-equations-in-documents)。
+直接markdownに[数式記法を追加](http://qiita.com/Qiita/items/c686397e4a0f4f11683d#%E6%95%B0%E5%BC%8F%E3%81%AE%E6%8C%BF%E5%85%A5)したりするより、プレーンなmarkdownにreSTの構文を部分的に導入したほうがいいんじゃないかという気もする。[reSTはdirectiveとroleで数式を記述できる](http://docutils.sourceforge.net/FAQ.html#how-can-i-include-mathematical-equations-in-documents)。
 
 HTMLの出力が得られればOKというケースでは、html-pipelineのようにHTMLに落としてからDOMをいじるのが手軽で現実的だと思う。ただし既存の構文を拡張するとなるとHTMLに変換してからではうまくいかないこともあるはずで、そういう場合にはパーサーをフックしたり、拡張した構文を自分で部分的にパースしたりということになる。
 
