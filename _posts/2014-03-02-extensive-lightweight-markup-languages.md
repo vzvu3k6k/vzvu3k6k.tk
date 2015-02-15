@@ -32,6 +32,8 @@ Haskell製のマークアップ言語変換ツールであるpandocには、JSON
 
 前述のmention機能は[html-pipeline/lib/html/pipeline/@mention_filter.rb](https://github.com/jch/html-pipeline/blob/master/lib/html/pipeline/%40mention_filter.rb)として同梱されている。
 
+- [increments/qiita-markdown](https://github.com/increments/qiita-markdown): Qiitaのmarkdown拡張。html-pipelineを利用している。
+
 ## reStrucuredTextの拡張可能な構文
 
 reStrucuredText(reST)はPythonコミュニティに出自を持つマークアップ言語。Javaに対するJavaDoc、Rubyに対するRDocのPython版のような位置付け。markdownより多機能なので[仕様](http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html)は割と大きめ。
