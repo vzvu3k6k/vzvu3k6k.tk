@@ -1,6 +1,6 @@
 ---
 layout: post
-title: <input value="&#x2713;">などを含むページがXPathFeedの/frameで正常に表示できない問題を直した
+title: XPathFeedの/frameで<input value="&#x2713;">などを含むページが正常に表示できない問題を直した
 ---
 
 正確に書くと、HTMLのタグの属性の値に符号位置がffより大きい文字参照が含まれているページのURLをXPathFeedの`/frame?url=...`に指定すると正常に表示できないという問題。
