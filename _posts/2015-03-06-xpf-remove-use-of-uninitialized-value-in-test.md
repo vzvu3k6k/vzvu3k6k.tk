@@ -70,7 +70,7 @@ XPathFeedのインスタンスがGCされるとき、`$self->DESTROY`が呼び�
 
 ---
 
-```
+```perl
 sub clean {
     my $self = shift;
     return if HTML::TreeBuilder->Use_Weak_Refs || !$self->tree;
