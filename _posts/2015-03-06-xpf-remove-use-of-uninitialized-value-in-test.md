@@ -100,7 +100,7 @@ HTML/TreeBuilder.pmの中では`use HTML::Element ();`とuseに明示的に空�
 
 `-weak`のようなオプションは`__PACKAGE__->import()`に渡される。HTML::TreeBuilder::importが存在しないので、`our @ISA = qw(HTML::Element HTML::Parser);`で親クラスに設定されているHTML::Elementのimportが呼び出されるという仕組み。
 
-ちなみに最初の`5`というオプションはHTML::TreeBuilderのバージョンが5以上であることを保証させるオプション。これは`__PACKAGE__::VERSION()`に引数として渡されている。デフォルトではベースクラスの<a href="http://perldoc.perl.org/UNIVERSAL.html">UNIVERSAL::VERSION</a>が呼び出され、クラスの`$VERSION`と照らし合わせて、渡されたバージョンより古ければ`die`される。
+ちなみに最初の`5`というオプションはHTML::TreeBuilderのバージョンが5以上であることを保証させるオプション。これは`__PACKAGE__::VERSION()`に引数として渡されている。デフォルトではベースクラスの[UNIVERSAL::VERSION](http://perldoc.perl.org/UNIVERSAL.html)が呼び出され、指定されたバージョンよりクラスの`$VERSION`が古ければ`die`される。
 
 ### 参考
 
