@@ -82,9 +82,9 @@ sub clean {
 
 #### 弱い参照はいつごろからサポートされているのか
 
-perl56deltaにweak referenceが導入されたというアナウンスがある。当時はexperimentalな機能で、Devel::WeakRefを通じて利用することができた。
+[perl56delta](http://perldoc.perl.org/perl56delta.html)に[weak referenceが導入されたというアナウンス](http://perldoc.perl.org/perl56delta.html#Weak-references)がある。当時はexperimentalな機能で、Devel::WeakRefを通じて利用することができた。
 
-perl58deltaでScalar::Utilが追加されていて、この中にweakenも入っている（[Scalar::UtilをPerlにバンドルするコミット](https://github.com/perl/perl5/commit/f4a2945e37e7fde9d94fd91ab4bd8581bde8c1ec)）。weakenなどの内部では`SvWEAKREF`が定義されているかチェックしているが、5.8ではsv.hで無条件に定義されている様子で、それ以降のperldeltaにはこの機能を無効化したという記述はないので、5.8以降では常に使える状態なのではないかと思う。
+[perl58delta](http://perldoc.perl.org/perl58delta.html)でScalar::Utilが追加されていて、この中にweakenも入っている（[Scalar::UtilをPerlにバンドルするコミット](https://github.com/perl/perl5/commit/f4a2945e37e7fde9d94fd91ab4bd8581bde8c1ec)）。weakenなどの内部では`SvWEAKREF`が定義されているかチェックしているが、5.8ではsv.hで無条件に定義されている様子で、それ以降のperldeltaにはこの機能を無効化したという記述はないので、5.8以降では常に使える状態なのではないかと思う。
 
 #### 参考
 
