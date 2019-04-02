@@ -17,4 +17,7 @@ sass:
   deploy_style: compressed
   compile_in_place: false
 
+plugins:
+  - jekyll-sitemap
+
 exclude: [Gemfile, Gemfile.lock, build]

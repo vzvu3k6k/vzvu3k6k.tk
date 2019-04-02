@@ -2,6 +2,7 @@ source 'http://rubygems.org'
 
 group :jekyll do
   gem 'jekyll'
+  gem 'jekyll-sitemap'
   gem 'rdiscount'
   gem 'grit'
 end
