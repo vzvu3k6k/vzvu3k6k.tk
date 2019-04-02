@@ -17,4 +17,4 @@ sass:
   deploy_style: compressed
   compile_in_place: false
 
-exclude: [spec, Gemfile, Gemfile.lock, config.ru, build]
+exclude: [Gemfile, Gemfile.lock, build]

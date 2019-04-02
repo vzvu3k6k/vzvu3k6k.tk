@@ -7,12 +7,6 @@ group :jekyll do
   gem 'grit'
 end
 
-group :test do
-  gem 'sitespec'
-  gem 'rack-jekyll'
-  gem 'nokogiri'
-end
-
 group :development do
   gem 'pry'
 end
