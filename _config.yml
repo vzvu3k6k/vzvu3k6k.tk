@@ -10,7 +10,11 @@ author:
   email: vzvu3k6k@gmail.com
   mailhide: http://www.google.com/recaptcha/mailhide/d?k=01Jtza220vCJ3GghRBqzxWuA==&c=FN3HMylmhSPQOyHxZNbCZl95-QlC2ep1WUsa2Azom9I=
 
-markdown: rdiscount
+markdown: CommonMark
+
+commonmark:
+  options: [SMART, FOOTNOTES]
+  extensions: [autolink, table]
 
 sass:
   style: expanded
