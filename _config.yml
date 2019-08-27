@@ -24,4 +24,4 @@ sass:
 plugins:
   - jekyll-sitemap
 
-exclude: [Gemfile, Gemfile.lock, build]
+exclude: [Gemfile, Gemfile.lock, build, ',']
