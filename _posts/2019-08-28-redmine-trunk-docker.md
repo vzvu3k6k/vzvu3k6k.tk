@@ -18,7 +18,7 @@ Docker official imageの<https://github.com/docker-library/redmine>をベース�
 
 `*.template`はRedmineのソースのtarballをダウンロードする処理をsvnでcheckoutする処理に置き換えた。いくつか引っかかったことがあるのでメモしておく。
 
-#### 中間証明書問題
+### 中間証明書問題
 
 `https://svn.redmine.org/`は中間証明書を提供していないらしく、`svn co`するとエラーになる。
 
