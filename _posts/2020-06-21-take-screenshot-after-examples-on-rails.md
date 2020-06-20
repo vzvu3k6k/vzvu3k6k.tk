@@ -62,7 +62,7 @@ SystemExampleGroupの実装では、`RSpec.describe '...', type: :system`のコ�
 
 前述の[rspec-railsの`SystemExampleGroup`](https://github.com/rspec/rspec-rails/blob/v4.0.1/lib/rspec/rails/example/system_example_group.rb#L114)のほかに、[capybaraの`rspec.rb`](https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/rspec.rb#L18)でもコールバックをセットしているので、テストケース終了後に`Capybara.reset_sessions!`は二度呼ばれる。
 
-capybaraの`rspec.rb`のほうは消してもよさそうにも思えるが、どうなんだろうか？
+二度呼ぶ必要はなさそうだし、capybaraの`rspec.rb`のほうは消してもいいのではと思ったが、feature specにはrspec-railsから`Capybara.reset_sessions!`を呼ぶ処理がないので、単純に消すと既存のfeature specが壊れてしまうようだ。
 
 ## `Capybara.reset_sessions!`の不可解に見えたふるまいについて
 
