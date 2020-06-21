@@ -37,11 +37,11 @@ title: 無限スクロールの問題点と解決方法
 
 [We Heart It](http://weheartit.com/)ではページの右下にこのようなナビゲーションを設けている。テキストボックスにページ番号を入力してEnterを押すとそのページに移動できる。
 
-![]({{ site.baseurl }}img/better-infinite-scroll-navigation.png)
+![](/memo/img/better-infinite-scroll-navigation.png)
 
 ## メモリーが食い潰される
 
-[Tumblrの省メモリーな無限スクロール]({{ site.baseurl }}2014/04/26/tumblr-ghostlist.html)を参照。
+[Tumblrの省メモリーな無限スクロール](/memo/2014/04/26/tumblr-ghostlist.html)を参照。
 
 ## 参考
 

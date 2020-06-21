@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <title>{{ page.title | xml_escape }} - {{ site.title | xml_escape }}</title>
-  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="{{ site.baseurl }}{{ site.feed }}" />
-  <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}css/post.css">
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/{{ site.feed }}" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
 </head>
 <body>
   <article>
@@ -21,7 +21,7 @@
     </footer>
   </article>
   <nav>
-    <a href="{{ site.baseurl }}index.html">目次</a>
+    <a href="/memo/index.html">目次</a>
   </nav>
 </body>
 </html>

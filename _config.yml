@@ -1,6 +1,5 @@
 title: 記録
 description: vzvu3k6k
-baseurl: /memo/
 url: https://vzvu3k6k.tk
 commit_permalink: https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/{id}
 permalink: /memo/:year/:month/:day/:title.html

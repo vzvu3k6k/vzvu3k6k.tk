@@ -5,10 +5,10 @@ layout: nil
 <feed xmlns="http://www.w3.org/2005/Atom">
  
   <title>{{ site.title | xml_escape }}</title>
-  <link href="{{ site.url }}{{ site.baseurl }}"/>
+  <link href="{{ site.url }}/memo/"/>
   <link type="application/atom+xml" rel="self" href="{{ site.url }}{{ page.url }}"/>
   <updated>{{ site.time | date_to_xmlschema }}</updated>
-  <id>{{ site.url }}{{ site.baseurl }}</id>
+  <id>{{ site.url }}/memo/</id>
   <author>
     <name>{{ site.author.name | xml_escape }}</name>
     <uri>{{ site.url }}/</uri>

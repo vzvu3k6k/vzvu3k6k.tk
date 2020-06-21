@@ -49,9 +49,9 @@ Firefoxで検証するべきだが、とりあえずChromeを使って調べた�
 
 <dl>
   <dt><a href="http://www.nicovideo.jp/">http://www.nicovideo.jp/</a></dt>
-  <dd><img src="{{ site.baseurl }}img/ghostlist_nicovideo.png"><br>子要素を退避させた直後にはメモリーの使用量が増加しているが、その後しばらくすると退避前よりも使用量が減少している。</dd>
+  <dd><img src="/memo/img/ghostlist_nicovideo.png"><br>子要素を退避させた直後にはメモリーの使用量が増加しているが、その後しばらくすると退避前よりも使用量が減少している。</dd>
   <dt><a href="http://www.asahi.com/">http://www.asahi.com/</a></dt>
-  <dd><img src="{{ site.baseurl }}img/ghostlist_asahi.png"><br>同上。</dd>
+  <dd><img src="/memo/img/ghostlist_asahi.png"><br>同上。</dd>
   <dt><a href="https://www.google.co.jp/search?q=dom+memory&amp;num=100">https://www.google.co.jp/search?q=dom+memory&num=100</a></dt>
   <dd>何もしていなくてもメモリーの使用量のグラフがきれいなノコギリ波を描く。裏で走っているタイマーが大量にオブジェクトを生成していて、定期的にGCが行われているのではないかと思う。画像を消しても子要素を退避しても、ほとんど変化が見られない。むしろ微妙に使用量が増える。</dd>
   <dt><a href="http://jsfiddle.net/vzvu3k6k/fQce4/">http://jsfiddle.net/vzvu3k6k/fQce4/</a></dt>

@@ -10,8 +10,8 @@ TwitterやFacebookのユーザーページにアクセスすると、そのユ�
 
 動作している様子はこんな感じ。"約 15,200 件"とかいうのが検索結果数で、括弧内が「この画像の最良の推測結果」。
 
-  * ![Twitter @twitter]({{ site.baseurl }}img/avatar_image_search_userjs_tw-twitter.png)
-  * ![Facebook Japan]({{ site.baseurl }}img/avatar_image_search_userjs_fb-facebookjapan.png)
+  * ![Twitter @twitter](/memo/img/avatar_image_search_userjs_tw-twitter.png)
+  * ![Facebook Japan](/memo/img/avatar_image_search_userjs_fb-facebookjapan.png)
 
 ----
 

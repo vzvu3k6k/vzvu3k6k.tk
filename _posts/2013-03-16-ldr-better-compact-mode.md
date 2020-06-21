@@ -7,16 +7,16 @@ title: Livedoor Readerの本文非表示モードを改善するユーザース�
 
 <dl>
   <dt>Before</dt>
-  <dd><img alt="default image" style="max-width: 70%" src="{{ site.baseurl }}img/ldr-title-only-mode-default.png"></dd>
+  <dd><img alt="default image" style="max-width: 70%" src="/memo/img/ldr-title-only-mode-default.png"></dd>
   <dt>After</dt>
-  <dd><img alt="demo image" style="max-width: 70%" src="{{ site.baseurl }}img/ldr-title-only-mode-custom.png"></dd>
+  <dd><img alt="demo image" style="max-width: 70%" src="/memo/img/ldr-title-only-mode-custom.png"></dd>
 </dl>
 
 タイトル以外をばっさり消して、文字のサイズをいじったりすると一覧性が上がって見やすくなった。
 
 ちなみにGoogle Readerのヘッドラインモードはこんな感じ。
 
-<img style="max-width: 70%" alt="Google Reader image" src="{{ site.baseurl }}img/ldr-title-only-mode-google-reader-listview.png">
+<img style="max-width: 70%" alt="Google Reader image" src="/memo/img/ldr-title-only-mode-google-reader-listview.png">
 
 タイトルの横に記事の冒頭の文章が並んでいるのが便利。CSSを使って再現しようとしてみたがどうにもならなかった。Google Readerは`<span class="snippet">`という専用の要素を用意しているようだ。
 
