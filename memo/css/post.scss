@@ -2,70 +2,71 @@
 ---
 
 body {
-    margin: auto;
-    padding: 0 0.5em;
-    max-width: 55em;
+  margin: auto;
+  padding: 0 0.5em;
+  max-width: 55em;
 
-    header {
-		h1 {
-			margin-bottom: 0.5ex;
-		}
-
-		time {
-			display: block;
-			float: right;
-		}
-
-		&:after {
-			clear: both;
-			content: "";
-			display: block;
-		}
+  header {
+    h1 {
+      margin-bottom: 0.5ex;
     }
 
-    img {
-		border: thin double #AAA;
-		margin: 0 1ex;
-    }
-    .thumbnail {
-        max-width: 75%;
-        max-height: 30em;
+    time {
+      display: block;
+      float: right;
     }
 
-    pre, code {
-		background-color: #F0F0F0;
-		border-radius: 0.2em;
+    &:after {
+      clear: both;
+      content: "";
+      display: block;
     }
+  }
 
-    pre {
-		padding: 0.3em;
+  img {
+    border: thin double #aaa;
+    margin: 0 1ex;
+  }
+  .thumbnail {
+    max-width: 75%;
+    max-height: 30em;
+  }
+
+  pre,
+  code {
+    background-color: #f0f0f0;
+    border-radius: 0.2em;
+  }
+
+  pre {
+    padding: 0.3em;
+  }
+
+  code {
+    padding: 0;
+  }
+
+  nav {
+    margin-top: 2em;
+    clear: both;
+
+    .send-pullreq {
+      font-size: small;
+      float: right;
     }
+  }
 
-    code {
-		padding: 0;
+  article > footer {
+    border-top: thin solid gray;
+
+    .changelog {
+      h2 {
+        font-size: 100%;
+      }
     }
+  }
 
-    nav {
-		margin-top: 2em;
-        clear: both;
-
-		.send-pullreq {
-			font-size: small;
-			float: right;
-		}
-    }
-
-	article > footer {
-		border-top: thin solid gray;
-
-		.changelog {
-			h2 {
-				font-size: 100%;
-			}
-		}
-	}
-
-	dt:not(:first-child) {
-		margin-top: 1em;
-	}
+  dt:not(:first-child) {
+    margin-top: 1em;
+  }
 }
