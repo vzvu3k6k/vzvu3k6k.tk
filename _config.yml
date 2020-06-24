@@ -12,7 +12,7 @@ author:
 markdown: CommonMark
 
 commonmark:
-  options: [SMART, FOOTNOTES]
+  options: [UNSAFE, SMART, FOOTNOTES]
   extensions: [autolink, table]
 
 sass:
