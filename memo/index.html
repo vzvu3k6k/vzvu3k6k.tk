@@ -4,7 +4,7 @@ layout: index
 <h1>{{ site.title | xml_escape }}</h1>
 <ul id="posts">
   {% for post in site.posts %}
-  <li><time datetime="{{ post.date | date_to_valid_date_string }}">{{ post.date | date_to_ja_string }}</time> <a href="{{ post.url | xml_escape }}">{{ post.title | xml_escape }}</a></li>
+  <li><time datetime="{{ post.date | date: "%Y-%m-%d" }}">{{ post.date | date: "%Y-%m-%d" }}</time> <a href="{{ post.url | xml_escape }}">{{ post.title | xml_escape }}</a></li>
   {% endfor %}
 </ul>
 
