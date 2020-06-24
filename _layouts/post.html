@@ -10,7 +10,7 @@
   <article>
     <header>
       <h1>{{ page.title | xml_escape }}</h1>
-      <time datetime="{{ page.date | date_to_valid_date_string}}">{{ page.date | date_to_ja_string }}</time>
+      <time datetime="{{ page.date | date: "%Y-%m-%d" }}">{{ page.date | date: "%Y-%m-%d" }}</time>
     </header>
     {{ content }}
     <footer>
