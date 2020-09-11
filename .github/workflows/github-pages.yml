@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - source
+      - source-debug
 
 jobs:
   github-pages:
