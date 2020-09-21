@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>はてなブックマークの「トピック」にAutoPagerizeとLDRizeを適用する - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>はてなブックマークの「トピック」にAutoPagerizeとLDRizeを適用する</h1>
+      <time datetime="2015-02-13">2015-02-13</time>
+    </header>
+    <ul>
+<li><a href="http://b.hatena.ne.jp/topiclist">はてなブックマーク - トピック</a></li>
+<li><a href="http://bookmark.hatenastaff.com/entry/2015/02/05/190331">自然言語処理技術を用いたはてなブックマークの新機能「トピック」をベータリリースしました - はてなブックマーク開発ブログ</a></li>
+</ul>
+<p>はてなブックマークで盛り上がった話題をピックアップして、関連記事を提示してくれる機能がベータリリースされた。すでに10年分のトピックがあるので、AutoPagerizeとLDRizeでテンポよく読んでいきたい。</p>
+<h2>AutoPagerize</h2>
+<p><a href="http://wedata.net/items/76901">アイテム: はてなブックマーク - トピック - データベース: AutoPagerize - wedata</a></p>
+<p>SITEINFOは追加したが、いくつかのAutoPagerize系の拡張は<code>http://b.hatena.ne.jp/*</code>では動作しないように設定されている（<a href="https://addons.mozilla.org/en-US/firefox/addon/autopagerize/">Firefox版AutoPagerize</a>と<a href="https://github.com/Griever/userChromeJS/tree/master/uAutoPagerize">uAutoPagerize</a>で確認）ので、トピックリスト関連のページを無効化の対象から外すように書き換える必要がある（<a href="https://github.com/vzvu3k6k/autopagerize_for_firefox/commit/2263f5941df30ea6cab0a43f1c4bbe310d088a99">Firefox版AutoPagerizeの書き換え例</a>）。はてなブックマークの<a href="http://b.hatena.ne.jp/skozawa/">ユーザーのブックマーク一覧</a>には無限スクロールが実装されているから、そのうちトピック機能にも実装されるのではないか、ということでプルリクエストは送っていない。</p>
+<p>右側の日付リストについては、<a href="https://github.com/vzvu3k6k/b_hatena_topiclist-infinite_scroll.user.js/commit/8e8e8515832c7afc689cbb28875530c342b1415a">継ぎ足したら日付リストも伸ばしていくというユーザースクリプトを書いてみた</a>が、ページ側のスクリプトでDOMをキャッシュしているので、これだけではスクロールしてもハイライトが変化しない。継ぎ足した時に<code>unsafeWindow</code>などを経由してキャッシュを消してやれば動きそうだが、数回継ぎ足しただけでリストが溢れるという問題もある。日付をカレンダーのように並べるとか、表示していない月は折りたたむなどという対策を考えたが、実装が面倒なわりにメリットが少ないのでそのままにしている。</p>
+<p>「あとで読む」ボタンはそのままでは有効にならない。ユーザースクリプトなどを使って、<code>AutoPagerize_DOMNodeInserted</code>の発火時に<a href="https://github.com/vzvu3k6k/b_hatena_topiclist-expand_topic.user.js/blob/cdff45a1c707c48801ce99ff0f28f814dcb0109d/scripts/main.user.js#L60-L61">b_hatena_topiclist-expand_topic.user.js/main.user.js#L60-61</a>のような処理を走らせれば動くようになるはず。</p>
+<h2>LDRize</h2>
+<ul>
+<li><a href="http://wedata.net/items/76903">アイテム: はてなブックマーク - エントリ一覧ページ - データベース: LDRize - wedata</a></li>
+<li><a href="http://wedata.net/items/76902">アイテム: はてなブックマーク - トピック一覧ページ - データベース: LDRize - wedata</a></li>
+</ul>
+<h3>トピックを展開するユーザースクリプトとの連携</h3>
+<p>省略されたタイトルとサムネイルだけではトピックの内容が分からないことがある。その場で内容を確認できると便利かもしれない、と思って<a href="https://github.com/vzvu3k6k/b_hatena_topiclist-expand_topic.user.js">b_hatena_topiclist-expand_topic.user.js</a>というユーザースクリプトを書いた。トピックにマウスカーソルを当てると、右下にボタンが表示されて、クリックするとトピックが展開される。</p>
+<p>LDRizeと書いたけど実際にはLDRizeではなくて<a href="https://github.com/mooz/keysnail">mooz/keysnail · GitHub</a>の<a href="https://gist.github.com/958/1369730">LDRnail</a>というプラグインを使っている。<a href="https://raw.githubusercontent.com/mooz/keysnail/master/plugins/site-local-keymap.ks.js">サイトローカル・キーマップ</a>というプラグインと組み合わせると、手軽にLDRnailにキーバインドを追加するようなことができる。</p>
+<p>以下のコードをKeySnailの設定ファイルに追加すると、LDRnailで選択中のトピックを<kbd>i</kbd>キーで展開できるようになる。</p>
+<pre><code class="language-js">local[&quot;^http://b.hatena.ne.jp/topiclist&quot;] = [
+  ['i', function (){
+    var open = plugins.ldrnail.currentItem.querySelector('.__expand-button');
+    if(open){
+      open.click();
+    }
+  }],
+];
+</code></pre>
+<p>ただ、手元の環境だと<kbd>i</kbd>を押してから概要を開くのに数秒かかる。普通に開いてタブを切り替えながら読んだほうがいいような気がしてきた。</p>
+<h2>SITEINFO雑感</h2>
+<p>CSS selectorの<code>.class-name</code>に相当するXPathは、厳密に書くと<code>*[contains(concat(&quot; &quot;, normalize-space(@class), &quot; &quot;), &quot; class-name &quot;)]</code>となる（参考: <a href="http://constellation.hatenablog.com/entry/20080530/1212161519">SITEINFO中のnormalize-space()削除について - 枕を欹てて聴く</a>）のだが、他のSITEINFOを見てみると<code>//a[@class='class-name']</code>という感じで簡便に指定しているものが多い。厳密な書き方だと視認性が下がるし、SITEINFOファイルが肥大化するのを避けるという意味もあるのかもしれない。</p>
+<p>トピック機能はまだベータ版なので、class属性を完全一致で指定するよりもCSSのclass selector相当の記法を使って変更に強くしたほうがいいのでは、と思ったけど、<abbr title="You aren't gonna need it.">YAGNI</abbr>という気もする。</p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/69022847887c09845e8d4b2e93ebfc2fa45f5cb9"><time>2015-02-13T23:22:26+09:00</time> <span>Add a post</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

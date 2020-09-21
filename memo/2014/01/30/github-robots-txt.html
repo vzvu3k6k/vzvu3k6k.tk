@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>https://github.com/robots.txt - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>https://github.com/robots.txt</h1>
+      <time datetime="2014-01-30">2014-01-30</time>
+    </header>
+    <p>冒頭に</p>
+<pre><code># If you would like to crawl GitHub contact us at support@github.com.
+# We also provide an extensive API: http://developer.github.com/
+</code></pre>
+<p>と人間向けのメッセージがある。</p>
+<p>ボットは基本的に<a href="https://github.com/humans.txt">/humans.txt</a>にしかアクセスできないことになっている。主だったサーチエンジンのクローラは別扱いになっているが、サーバーの負担を避けるためなのか、かなり詳細にDisallowが設定されている。User-Agentごとに同じAllowとDisallowの設定が繰り返されていてムズムズする。robots.txtがあまり複雑なフォーマットをサポートするとパーサーを書くのが大変だろうから、仕方がないのだろうか。</p>
+<p>目を引いたのは</p>
+<pre><code>Disallow: /ekansa/Open-Context-Data
+Disallow: /ekansa/opencontext-*
+</code></pre>
+<p>という部分。個人のリポジトリがDisallowに指定されている。<a href="https://github.com/ekansa/Open-Context-Data">ekansa/Open-Context-Data · GitHub</a>のREADMEによると、このリポジトリには総計3GB以上のXMLファイルが含まれていて、GitHubに変更をpushしようとするとHTTP 500 range errorが返ってきてしまうなどと書かれている。あまりにサイズが大きすぎるのでクロールが禁止されてしまったらしい。</p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/98bb5d3d1926ea66b0513b96ee07ca7d739b6717"><time>2014-01-30T23:57:06+09:00</time> <span>Add a post</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>「Effective Rubyのcatch/throwをproduct/findで書き換える」の感想 - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>「Effective Rubyのcatch/throwをproduct/findで書き換える」の感想</h1>
+      <time datetime="2015-02-01">2015-02-01</time>
+    </header>
+    <p><a href="http://qiita.com/jnchito/items/2ef9cda52e87b58e6bf0">Effective Rubyのcatch/throwをproduct/findで書き換える - Qiita</a>を読んだ。</p>
+<pre><code class="language-rb">match = catch(:jump) do
+  @characters.each do |character|
+    @colors.each do |color|
+      if player.valid?(character, color)
+        throw(:jump, [character, color])
+      end
+    end
+  end
+end
+</code></pre>
+<p>というコードは</p>
+<pre><code class="language-rb">match = @characters.product(@colors).find {|params| player.valid?(*params) }
+</code></pre>
+<p>とリファクタリングできるという話。</p>
+<p><q cite="http://qiita.com/jnchito/items/2ef9cda52e87b58e6bf0#comment-c2dc7ecdbf3c94591291">配列が大きいようだと、product で大量の Array が作られることになるので throw-catch のコードのほうが効率的</q>と<a href="http://qiita.com/jnchito/items/2ef9cda52e87b58e6bf0#comment-c2dc7ecdbf3c94591291">コメント</a>で指摘されている。</p>
+<p><code>Array#product</code>や<code>catch</code>/<code>throw</code>を使わず、<code>find</code>と<code>break</code>を使って書いてみたのが以下。</p>
+<pre><code class="language-rb">match = @characters.find {|character|
+    valid_color = @colors.find {|color|
+        player.valid?(character, color)
+    }
+    break [character, valid_color] if valid_color
+}
+</code></pre>
+<p><code>Array#product</code>版に比べるとメモリの消費量は少ないはずだが、これだと<code>catch</code>/<code>throw</code>を使ったバージョンのほうが分かりやすい。</p>
+<h2><code>Array#product</code>にブロックを渡す</h2>
+<p><code>Array#product</code>にブロックを渡すと、組み合わせを一つごとにブロックの引数にして呼び出してくれるので、次のようにも書ける。</p>
+<pre><code class="language-rb">match = @characters.product(@colors){|params|
+    break params if player.valid?(*params)
+}
+
+# `break`が実行されなかったときには`match == @characters`になるので、それをチェックする必要がある。
+match = nil if match == @characters
+</code></pre>
+<p>CRubyの実装を見てみると、ブロックが渡されているときには組み合わせを一つ生成するごとにブロックを呼んでいるようだから、<code>find</code>と<code>break</code>を使ったバージョンと同じ程度の効率で動くことが期待できる。</p>
+<p>また、<code>Object#to_enum</code>を使うと</p>
+<pre><code class="language-rb">match = @characters.to_enum(:product, @colors).find {|params| player.valid?(*params) }
+</code></pre>
+<p>と書ける。見た目は<code>product</code>/<code>find</code>版に近い。</p>
+<p>ただし、Rubiniusの実装では<code>Array#product</code>はブロックの有無に関わらず、結果を一括して生成してしまう。やはり<code>catch</code>/<code>throw</code>を使ったほうが安全だ。</p>
+<h2><code>Array#product</code>はなぜEnumeratorを返さないのか</h2>
+<p><code>Array#combination</code>や<code>Array#permutation</code>などはブロックを渡さずに呼び出すとEnumeratorを返す。なぜ<code>Array#product</code>だけがArrayを返すのかよく分からない。</p>
+<p><code>Enumerator#zip</code>もEnumeratorではなくArrayを返す。self以外の要素が関わっているのが問題なんだろうか。</p>
+<p>RubyのChangelogをgrepしてみたがよく分からない。とりあえず、rb_ary_(combination|product|permutation)が追加されたのはSat Sep 29 17:31:04 2007のことらしい。</p>
+<h2>関連</h2>
+<ul>
+<li><a href="http://d.hatena.ne.jp/m_seki/20150211#1423582051">つくってみた - I like Ruby too.</a>: <code>Array#product</code>のEnumerable版、<code>Enumerable#product_enum</code>の実装。rewindを持つEnumeratorを引数に取ってEnumeratorを返す。</li>
+</ul>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/8d87e9cd629c6a38e1db4b1990ca7989980418ed"><time>2015-02-13T20:17:35+09:00</time> <span>Enumerable#product_enumの実装例へのリンクを追加</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/03f9fdaf43a1b48f49fbbf0d339c91049d086220"><time>2015-02-13T18:14:40+09:00</time> <span>Fix typo</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/d2e0c40cce1d820e5f53797a0ffe65b6c1825820"><time>2015-02-01T11:22:38+09:00</time> <span>Add a post</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

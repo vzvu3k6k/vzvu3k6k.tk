@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>XPathFeedのテスト実行時の&quot;Use of uninitialized value $url ...&quot;を消す - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>XPathFeedのテスト実行時の&quot;Use of uninitialized value $url ...&quot;を消す</h1>
+      <time datetime="2015-03-06">2015-03-06</time>
+    </header>
+    <p><a href="https://github.com/onishi/xpathfeed/pull/5">Ensure weak references in use in HTML::TreeBuilder? by vzvu3k6k · Pull Request #5 · onishi/xpathfeed</a>についての覚え書き。</p>
+<p>t/XPathFeed.tを実行すると</p>
+<pre><code>Use of uninitialized value $url in pattern match (m//) at lib/XPathFeed.pm line 91.
+Use of uninitialized value $url in concatenation (.) or string at lib/XPathFeed.pm line 91.
+</code></pre>
+<p>という警告が表示される。これがエラーとまぎらわしいので消したかった。</p>
+<pre><code class="language-perl">sub uri {
+    my $self = shift;
+    my $url = $self-&gt;url;
+    $url =~ /http/ or $url = &quot;http://$url&quot;; # line 91
+    $self-&gt;{uri} ||= URI-&gt;new($url)-&gt;canonical;
+}
+</code></pre>
+<p>問題のコードはXPathFeed::uriにあるのだが、XPathFeedのインスタンスを作ってそのまま捨てる（<code>carton exec -- perl -Ilib -MXPathFeed -e'XPathFeed-&gt;new'</code>）だけでもこの警告が出る。</p>
+<p>しかし、インスタンスを初期化するときにuriメソッドが呼ばれているわけではなさそう。</p>
+<pre><code class="language-perl">sub new {
+    my $class = shift;
+    my %args = @_==1 ? %{$_[0]} : @_;
+    return $class-&gt;SUPER::new({%args});
+}
+</code></pre>
+<p>親クラスの<code>use base qw/Class::Accessor::Fast Class::Data::Inheritable/;</code>あたりが呼び出しているのかな？と思いながら、<a href="http://perldoc.perl.org/functions/caller.html">caller</a>でuriメソッドの呼び出し元を追ってみると、実はデストラクタが原因だった。</p>
+<pre><code class="language-perl">sub clean {
+    my $self = shift;
+    $self-&gt;tree or return;
+    $self-&gt;tree-&gt;delete;
+}
+
+sub DESTROY { # これがデストラクタ
+    my $self = shift;
+    $self-&gt;clean;
+}
+</code></pre>
+<p>XPathFeedのインスタンスがGCされるとき、<code>$self-&gt;DESTROY</code>が呼び出され、その中で<code>$self-&gt;clean</code>が実行される。ここではメモリリークを避けるため、<code>$self-&gt;tree-&gt;delete</code>でHTML::TreeBuilderのインスタンスが持っているHTML要素などを明示的に破棄している。ところが、<code>$self-&gt;tree</code>は初回実行時に<code>$self-&gt;decoded_content</code>からHTML::TreeBuilderのインスタンスを遅延初期化するメソッドなので、ここで意図せずtreeが生成されてしまう。treeを生成するために<code>$self-&gt;decoded_content</code>が呼ばれ、そこから<code>$self-&gt;http_result</code>が呼ばれ、その中で<code>$self-&gt;uri</code>が呼ばれているのだった。さらにキャッシュやLWP::UserAgentなども呼び出され、ようやく生成されたtreeは次の行でバサリと切り倒される。</p>
+<h2>解決方法</h2>
+<p>一番簡単な解決方法は、uriメソッドを<code>my $url = $self-&gt;url || '';</code>のように書き換えることだろう。しかし、空のインスタンスを破棄するだけで大量のメソッドが無意味に実行される問題は残る。</p>
+<p><code>XPathFeed-&gt;new</code>に常にダミーのurlパラメータを渡すのも同様。</p>
+<p>別の方法として、<code>$self-&gt;tree</code>で生成されたHTML::TreeBuilderのインスタンスが<code>$self-&gt;{tree}</code>に保存されるのを利用する手もある。cleanメソッドで直接<code>$self-&gt;{tree}</code>を参照してやれば、treeを削除するために生成するような無駄はなくなる。とはいえ、内部で使われることを意図した変数に直接アクセスするのは好ましくない気もする。</p>
+<h3>弱い参照</h3>
+<p>なぜHTML::TreeBuilder::deleteを呼ばないとメモリリークが発生するのかというと、ノードツリーが親子で循環参照しているので、参照カウント方式のGCだとオブジェクトが不要になったことが検出できないからだそうだ。</p>
+<p>最近のPerlには弱い参照が実装されていて、Scalar::Util::weakenで指定した参照はカウントされなくなる。実はHTML::TreeBuilderが内部で使っているHTML::Elementでは、Scalar::Util::weakenが存在していれば自動的に弱い参照を使う。これなら<code>$self-&gt;tree-&gt;delete</code>を呼ぶ必要はなくなる。</p>
+<p><code>use HTML::TreeBuilder 5 -weak;</code>とオプションを与えてuseすると弱い参照を使うように強制できる（Scalar::Util::weakenが存在しなければエラーが出る）。これならXPathFeed::cleanやDESTROYを削除できる。</p>
+<hr />
+<pre><code class="language-perl">sub clean {
+    my $self = shift;
+    return if HTML::TreeBuilder-&gt;Use_Weak_Refs || !$self-&gt;tree;
+    $self-&gt;tree-&gt;delete;
+}
+</code></pre>
+<p>このように弱い参照が有効になっているか確認するコードを入れるだけで済ませることも考えたが、できればコードの量を減らしたい。どうやら弱い参照は5.8あたりから使えるようになったらしいので、この機能が使えることを前提にしてもよさそう。</p>
+<h4>弱い参照はいつごろからサポートされているのか</h4>
+<p><a href="http://perldoc.perl.org/perl56delta.html">perl56delta</a>に<a href="http://perldoc.perl.org/perl56delta.html#Weak-references">weak referenceが導入されたというアナウンス</a>がある。当時はexperimentalな機能で、Devel::WeakRefを通じて利用することができた。</p>
+<p><a href="http://perldoc.perl.org/perl58delta.html">perl58delta</a>でScalar::Utilが追加されていて、この中にweakenも入っている（<a href="https://github.com/perl/perl5/commit/f4a2945e37e7fde9d94fd91ab4bd8581bde8c1ec">Scalar::UtilをPerlにバンドルするコミット</a>）。weakenなどの内部では<code>SvWEAKREF</code>が定義されているかチェックしているが、5.8ではsv.hで無条件に定義されている様子で、それ以降のperldeltaにはこの機能を無効化したという記述はないので、5.8以降では常に使える状態なのではないかと思う。</p>
+<h4>参考</h4>
+<ul>
+<li><a href="https://metacpan.org/pod/HTML::TreeBuilder">HTML::TreeBuilder - Parser that builds a HTML syntax tree - metacpan.org</a>
+<ul>
+<li><a href="https://metacpan.org/pod/HTML::Element">HTML::Element - Class for objects that represent HTML elements - metacpan.org</a>: <code>-weak</code>についての説明。</li>
+</ul>
+</li>
+<li><a href="http://perldoc.perl.org/5.8.9/perlobj.html#Two-Phased-Garbage-Collection">Two-Phased Garbage Collection - perlobj 5.8.9</a>: perl 5.8.9では普段のGCには参照カウント方式を使い、スレッドが終了するときはマーク・アンド・スイープ方式のGCを行う。最近のバージョンではこのあたりの記述がなくなっているので、今は違う実装になっているのかもしれない。</li>
+</ul>
+<h2>useのオプションの伝播</h2>
+<p>HTML::TreeBuilderで弱い参照を強制するには<code>use HTML::TreeBuilder 5 -weak;</code>と指定せよとドキュメントには書いてある。ところが、HTML/TreeBuilder.pmにはuseのオプションを直接チェックする処理はない。<code>-weak</code>を実際に解釈しているのはHTML::Elementというモジュールだ。</p>
+<p>HTML/TreeBuilder.pmの中では<code>use HTML::Element ();</code>とuseに明示的に空リストが渡されていて、<code>-weak</code>を引き渡している様子はない。それではどうやって値がHTML::Elementに渡されているのかというと、継承によって実現されている。</p>
+<p><code>-weak</code>のようなオプションは<code>__PACKAGE__-&gt;import()</code>に渡される。HTML::TreeBuilder::importが存在しないので、<code>our @ISA = qw(HTML::Element HTML::Parser);</code>で親クラスに設定されているHTML::Elementのimportが呼び出されるという仕組み。</p>
+<p>ちなみに最初の<code>5</code>というオプションはHTML::TreeBuilderのバージョンが5以上であることを保証させるオプション。これは<code>__PACKAGE__-&gt;VERSION()</code>に引数として渡されている。デフォルトではベースクラスの<a href="http://perldoc.perl.org/UNIVERSAL.html">UNIVERSAL::VERSION</a>が呼び出され、指定されたバージョンよりクラスの<code>$VERSION</code>が古ければ<code>die</code>される。</p>
+<h3>参考</h3>
+<ul>
+<li><a href="http://perldoc.perl.org/perlobj.html#A-Class-is-Simply-a-Package">perlobj - perldoc.perl.org</a></li>
+<li><a href="http://perldoc.perl.org/functions/use.html">use - perldoc.perl.org</a></li>
+</ul>
+<h2>その他</h2>
+<p>XPathFeedにプルリク送りまくってたらcollaboratorにしてもらえた。特にGitHubから通知とかはなくて、ある日突然<a href="https://github.com/">https://github.com/</a>のYour repositoriesにonishi/xpathfeedという表示が追加されたという感じだった。</p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/49a8b7b9026eee0611786535e682ab31a45be302"><time>2015-03-07T00:54:26+09:00</time> <span>__PACKAGE__::VERSION() -&gt; __PACKAGE__-&gt;VERSION()</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/02cdd3f0406839666dfa6f1da71370446afa1645"><time>2015-03-07T00:53:57+09:00</time> <span>markdownの記法を使う</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/d7c996a7a9b39f4c161f65eef154c4129c813923"><time>2015-03-07T00:51:56+09:00</time> <span>perldeltaにリンク</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/11d606c532f8c2a2ac1f10bfb309a0ae4b18433f"><time>2015-03-07T00:51:32+09:00</time> <span>code fenceにlanguage identifierを追加</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/84ded82ee29faebaabf329bd3a29d20b5530f048"><time>2015-03-06T13:14:41+09:00</time> <span>記事追加</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

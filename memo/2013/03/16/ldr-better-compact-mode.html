@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Livedoor Readerの本文非表示モードを改善するユーザースタイルシートとユーザースクリプト - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>Livedoor Readerの本文非表示モードを改善するユーザースタイルシートとユーザースクリプト</h1>
+      <time datetime="2013-03-16">2013-03-16</time>
+    </header>
+    <p><a href="http://userstyles.org/styles/84533/livedoor-reader-title-only-compact-mode">Livedoor Reader: Title-only compact mode - Themes and Skins for Livedoor - userstyles.org</a></p>
+<dl>
+  <dt>Before</dt>
+  <dd><img alt="default image" style="max-width: 70%" src="/memo/img/ldr-title-only-mode-default.png"></dd>
+  <dt>After</dt>
+  <dd><img alt="demo image" style="max-width: 70%" src="/memo/img/ldr-title-only-mode-custom.png"></dd>
+</dl>
+<p>タイトル以外をばっさり消して、文字のサイズをいじったりすると一覧性が上がって見やすくなった。</p>
+<p>ちなみにGoogle Readerのヘッドラインモードはこんな感じ。</p>
+<img style="max-width: 70%" alt="Google Reader image" src="/memo/img/ldr-title-only-mode-google-reader-listview.png">
+<p>タイトルの横に記事の冒頭の文章が並んでいるのが便利。CSSを使って再現しようとしてみたがどうにもならなかった。Google Readerは<code>&lt;span class=&quot;snippet&quot;&gt;</code>という専用の要素を用意しているようだ。</p>
+<p>ついでにフィードごとに表示モードを覚える機能をつけたユーザースクリプトも書いた。<a href="https://github.com/vzvu3k6k/LDR-Title-Only-Mode">vzvu3k6k/LDR-Title-Only-Mode</a>。</p>
+<p><a href="http://reader.livedoor.com/js/reader_main.0.3.6.js">reader_main.0.3.6.js</a>の<code>Control.compact()</code>（1518行目）と<a href="http://userscripts.org/scripts/review/34576">“HatebuComment on LDR” - Userscripts.org</a>を参考にした。</p>
+<p>あとで<code>Control.title_only</code>が別のキーに割り当てられたとき<code>&quot;タイトル以外を非表示にしました。&quot; + TITLE_ONLY_KEY + &quot;で元に戻ります&quot;</code>の<code>TITLE_ONLY_KEY</code>が書き換わらないのがちょっと気になる。</p>
+<h2>参考</h2>
+<p><a href="http://digimaga.net/2013/03/only-one-google-reader">Googleリーダーの代替サービスを試してみたけれどダメだった話</a></p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/c2953077222e4fbb2511bccd4e66cbbf98be963d"><time>2020-06-21T11:11:52+09:00</time> <span>Remove baseurl</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/93cf4e56683d2db1c351118260b39d46dc5cd801"><time>2013-11-22T22:32:00+09:00</time> <span>&quot;s/{{ site.baseurl }}\/img/{{ site.baseurl }}img/g&quot; in _posts</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/4b8a329e13502c8032a9c3741fe81fec2433c991"><time>2013-11-19T21:42:26+09:00</time> <span>Many changes</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>vzvu3k6k/download-redmine-releases - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>vzvu3k6k/download-redmine-releases</h1>
+      <time datetime="2020-09-12">2020-09-12</time>
+    </header>
+    <p><a href="https://github.com/vzvu3k6k/download-redmine-releases">https://github.com/vzvu3k6k/download-redmine-releases</a></p>
+<p><a href="https://redmine.org/releases/">https://redmine.org/releases/</a>からtarballをダウンロードする簡単なbashスクリプトを書いた。tar.gzファイルだけでも全部ダウンロードすると400MBほどある。</p>
+<p>ソースコードを取得するだけなら<a href="https://github.com/redmine/redmine">https://github.com/redmine/redmine</a>を使ったほうが楽だし早そうだが、今回は公式にリリースされているものを確認したかったので<a href="https://redmine.org/releases/">https://redmine.org/releases/</a>を利用した。</p>
+<h2>wgetの<code>--timestamping</code>と<code>--no-clobber</code></h2>
+<p>スクリプトを一度実行してすべてのファイルをダウンロードしたら、次の実行では新たに追加されたファイルだけを取得したい。wgetでは次のようなオプションが使える。</p>
+<ul>
+<li><code>--timestamping</code>: ファイルの最終更新日時から<code>If-Modified-Since</code>ヘッダーを生成して問い合わせる</li>
+<li><code>--no-clobber</code>: 同名のファイルがローカルに存在していたらリクエストを送らない</li>
+</ul>
+<p>バージョン番号の打たれたリリース物があとから書き換えられることはなさそうなので、今回は<code>--no-clobber</code>を使うことにした。</p>
+<p>一部では<a href="https://stackoverflow.com/questions/4944295/skip-download-if-files-exist-in-wget#comment54212653_4944353"><code>--no-clobber</code>は同名のファイルが存在していても保存をスキップするだけでリクエストは送るよ、いや送らないぞといった混乱がある</a>が、手元のwget 1.20.3では<code>wget --no-clobber localhost:4567/01.txt</code>のようなシンプルなコマンドではリクエストは送信されなかった。</p>
+<p>どうやらバージョンごとに動作が違うらしい。少なくとも2008年2月ごろにリクエストを送信しないように修正された記録がある。</p>
+<ul>
+<li>2008-02-03: <a href="https://git.savannah.gnu.org/cgit/wget.git/commit/?id=c1b7382ec4c25c23c81a0e0964d94fff72c6a633">c1b7382</a>でスキップ処理が追加されたっぽい</li>
+<li>2008-02-06: <a href="https://git.savannah.gnu.org/cgit/wget.git/commit/?id=cb7d0840a0bb0d976fb856fbbc2d424a0b1948a8">cb7d084</a>でスキップ処理を追加したことがChangeLogとNEWSに記載された</li>
+</ul>
+<p>きちんとchangelogが残されていて助かる。</p>
+<h2>wgetの<code>--accept</code>, <code>--reject</code></h2>
+<p>ダウンロードするファイルとしないファイルを指定できる。引数に含まれている文字によって挙動が変わる。</p>
+<ul>
+<li><code>*</code>, <code>?</code>, <code>[</code>, <code>]</code>が含まれていればパターン扱い
+<ul>
+<li>manには”treated as a pattern”としか書かれていなくて具体的な定義はなさそう。たぶんグロブ的ななにかだと思う。</li>
+</ul>
+</li>
+<li>そうでなければ後方一致</li>
+</ul>
+<p>値によっていい感じに暗黙的に挙動を切り替える仕様は、想定が甘いと「いい感じ」にならなくてユーザーの混乱を招くことがあるが、これは比較的うまくいっているケースのように思える。（でも次に使うときにはルール忘れてるかも）</p>
+<h2>wgetでApacheのindexページのソートリンクを無視する</h2>
+<ul>
+<li>Apacheのindexページには <a href="https://www.redmine.org/releases/?C=N;O=D">https://www.redmine.org/releases/?C=N;O=D</a> で名前順ソート、みたいなリンクがついている</li>
+<li>wgetでは<code>--reject-regex '\?C='</code>で無視するのが楽そう</li>
+</ul>
+<h2>チェックサムファイルの検証</h2>
+<p>最近のリリースではSHA256のチェックサムファイルが用意されているが、古いリリースにはMD5のチェックサムファイルしかない。SHA256のほうが衝突耐性が高いらしいので、そちらを優先して使うようにしている。</p>
+<ul>
+<li>サブディレクトリに置かれているファイルのチェックサム検証
+<ul>
+<li><code>md5sum -c 0.x/redmine-0.9.0.tar.gz.md5</code>では以下のようなエラーが出て失敗する。
+<pre><code>md5sum: redmine-0.9.0.tar.gz: No such file or directory
+redmine-0.9.0.tar.gz: FAILED open or read
+md5sum: WARNING: 1 listed file could not be read
+</code></pre>
+</li>
+<li>チェックサムファイル内のファイルパスが<code>redmine-0.9.0.tar.gz</code>になっているので、<code>0.x/redmine-0.9.0.tar.gz</code>ではなく<code>./redmine-0.9.0.tar.gz</code>を探しに行ってしまうため。</li>
+<li>ファイルごとに<code>pushd</code>, <code>popd</code>でカレントディレクトリを切り替えるくらいしか対策を思いつかなかった。</li>
+</ul>
+</li>
+<li>1ファイルごとに<code>sha256sum</code>や<code>md5sum</code>のプロセスを起動しているのがコスト高そう。</li>
+</ul>
+<h2><code>no checksum file found</code></h2>
+<p>チェックサムファイルが見つからなかったときのエラーメッセージ。最初は何も考えずに<code>checksum file is not found</code>と書いてたんだけど、<a href="https://github.com/coreutils/coreutils/blob/6a3d2883fed853ee01079477020091068074e12d/src/md5sum.c#L816">md5sumのエラーメッセージ</a>がよさそうだったので真似した。情報量のある単語が先になっているのがいい。</p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/6869b22af293e283b859acd157effbd89cc18a63"><time>2020-09-22T02:28:48+09:00</time> <span>--accept, --rejectのパターンについて追記</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/9f505a862e6d84f00723ca82025fca791c8407ff"><time>2020-09-21T23:31:57+09:00</time> <span>`no checksum file found`について追記</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/1fb620238d0db98dd3359161f61ace15be34406b"><time>2020-09-16T03:20:13+09:00</time> <span>MD5とSHA256の違い</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/830a2bdbd20a119cde223bc0c8f29c71631af7d5"><time>2020-09-12T19:13:43+09:00</time> <span>校正</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/ad2c926138162e5e569887711052f312860eee73"><time>2020-09-12T04:30:40+09:00</time> <span>記事追加</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

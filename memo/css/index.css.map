@@ -1,0 +1,12 @@
+{
+	"version": 3,
+	"file": "index.css",
+	"sources": [
+		"index.scss"
+	],
+	"sourcesContent": [
+		"ul#posts {\n  width: 80%;\n  max-width: 60em;\n  list-style-type: none;\n\n  li {\n    margin-bottom: 0.3em;\n    clear: both;\n\n    time {\n      margin-right: 1.3em;\n      display: block;\n      float: left;\n    }\n  }\n\n  @media (max-width: 70em) {\n    width: auto;\n    padding: 0;\n    li {\n      time {\n        float: none;\n      }\n      a {\n        display: block;\n      }\n      margin-bottom: 1em;\n    }\n  }\n}\n"
+	],
+	"names": [],
+	"mappings": "AAAA,AAAA,EAAE,AAAA,MAAM,CAAC;EACP,KAAK,EAAE,GAAG;EACV,SAAS,EAAE,IAAI;EACf,eAAe,EAAE,IAAI;CA0BtB;;AA7BD,AAKE,EALA,AAAA,MAAM,CAKN,EAAE,CAAC;EACD,aAAa,EAAE,KAAK;EACpB,KAAK,EAAE,IAAI;CAOZ;;AAdH,AASI,EATF,AAAA,MAAM,CAKN,EAAE,CAIA,IAAI,CAAC;EACH,YAAY,EAAE,KAAK;EACnB,OAAO,EAAE,KAAK;EACd,KAAK,EAAE,IAAI;CACZ;;AAGH,MAAM,kBAhBR;EAAA,AAAA,EAAE,AAAA,MAAM,CAAC;IAiBL,KAAK,EAAE,IAAI;IACX,OAAO,EAAE,CAAC;GAWb;EA7BD,AAmBI,EAnBF,AAAA,MAAM,CAmBJ,EAAE,CAAC;IAOD,aAAa,EAAE,GAAG;GACnB;EA3BL,AAoBM,EApBJ,AAAA,MAAM,CAmBJ,EAAE,CACA,IAAI,CAAC;IACH,KAAK,EAAE,IAAI;GACZ;EAtBP,AAuBM,EAvBJ,AAAA,MAAM,CAmBJ,EAAE,CAIA,CAAC,CAAC;IACA,OAAO,EAAE,KAAK;GACf;CAIN"
+}

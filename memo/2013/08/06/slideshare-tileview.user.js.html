@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SlideShareのスライドをタイル状に表示するユーザースクリプトを作った - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>SlideShareのスライドをタイル状に表示するユーザースクリプトを作った</h1>
+      <time datetime="2013-08-06">2013-08-06</time>
+    </header>
+    <p><a href="https://github.com/vzvu3k6k/slideshare-tileview.user.js">vzvu3k6k/slideshare-tileview.user.js · GitHub</a></p>
+<a href="http://www.slideshare.net/Erdbeervogel/coaching-for-life-aka-agile-coaching-sure-thing-what-about-life-coaching-in-agile-thinking">
+  <img alt="高度に発達したパワーポイントはスタイリッシュ写真集と区別がつかない。" src="/memo/img/slideshare-tileview.png" class="thumbnail">
+</a>
+<p>スライドをざっと見渡すのに便利。右下のボタンをクリックするとタイル表示モードになる。スライドをクリックすると通常のモードで見れる。</p>
+<p>ボタンのアイコンはどうしようかと思ったけど、Unicodeの文字一覧みたいなページを見てたらそれっぽい文字があったので、それを使うことにした。</p>
+<p>ページ数を変更するテキストボックスをクリックしたらなぜかトグルボタンも押されたことになるバグが出て、てっきりSlideShare側のスクリプトが悪さをしてるんだと思ってたけど、
+トグルボタンじゃなくて親要素にイベントハンドラを設定していたのが原因だった。「SlideShareのスクリプトが変な動きをする」とかコミットメッセージに書いたままpushするところだった。</p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/c2953077222e4fbb2511bccd4e66cbbf98be963d"><time>2020-06-21T11:11:52+09:00</time> <span>Remove baseurl</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/93cf4e56683d2db1c351118260b39d46dc5cd801"><time>2013-11-22T22:32:00+09:00</time> <span>&quot;s/{{ site.baseurl }}\/img/{{ site.baseurl }}img/g&quot; in _posts</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/4b8a329e13502c8032a9c3741fe81fec2433c991"><time>2013-11-19T21:42:26+09:00</time> <span>Many changes</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

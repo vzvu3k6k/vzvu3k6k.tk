@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>grep-ruby-token - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>grep-ruby-token</h1>
+      <time datetime="2013-11-01">2013-11-01</time>
+    </header>
+    <p><a href="https://github.com/vzvu3k6k/grep-ruby-token/">vzvu3k6k/grep-ruby-token</a></p>
+<p><a href="http://blog.uu59.org/2013-09-16-grep-token-ruby.html">uu59のメモ | git-grep-token-ruby作った（けど低品質）</a>が便利そうだったので<a href="http://rubygems.org/gems/parser">parser</a>でやってみた。</p>
+<p>GitHubに上げたけど誰も見てないだろうと思って<code>git push -f</code>をバシバシ使ってたら、<a href="https://twitter.com/uu59/statuses/380315860381859840">なかったことにしたコミットのほうにリンクされて</a>冷や汗が出た。</p>
+<p>オリジナルのgit-grep-token-rubyではripperを使ってコードをパースしているのだが、ripperから出力される構文木はやや複雑で扱いづらいところがある。Rubyのコードをパースするライブラリはripperの他にもいくつかあり、parserというシンプルすぎる名前のライブラリが一番後発で使いやすそうだったのでこれを使うことにした。調べた内容については<a href="http://qiita.com/vzvu3k6k/items/dd45ad293ae2d60c7a4e">Rubyのコードをパースするライブラリ</a>というタイトルでまとめた。内容が浅すぎてあまりまとまってない。</p>
+<p>parserは扱いやすいASTを出力してくれるが、複雑なコードではパースが失敗することがある。ripperを使ってparser式の簡潔なASTを生成したほうが楽なのではないかとも思うが、それはparserの作者も考えたはずで、<q cite="http://whitequark.org/blog/2012/10/02/parsing-ruby/">Unless you’re implementing something that obeys the garbage-in garbage-out rule, Ripper isn’t very useful. To make it worse, there isn’t a cross-platform gemification of Ripper, or at least I was unable to find one.</q>というあたり、特に後者が許容できなかったのだろうか。</p>
+<h2>関連</h2>
+<ul>
+<li><a href="http://watson1978.github.io/blog/2012/12/09/find-methods/">短いメソッドは grep で探すの大変ですよね - Watson’s Blog</a> - ripperを利用したトークン単位のRubyのソースコード検索</li>
+<li><a href="https://endofline.wordpress.com/2010/04/18/ruby_scope/">RubyScope | End of Line</a> - Rubyのソースコード用のgrep的なツール。高度な機能があるらしいが、手元ではうまく動かない。GitHubのリポジトリは2010年で更新が止まっている。パーサーには<a href="https://rubygems.org/gems/ruby_parser">ruby_parser</a>を使っている。</li>
+</ul>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/a33ed5416ddec94041832aa8e3bbfaab37eebde1"><time>2014-07-06T01:30:19+09:00</time> <span>Add link to RubyScope</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/4b8a329e13502c8032a9c3741fe81fec2433c991"><time>2013-11-19T21:42:26+09:00</time> <span>Many changes</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>
