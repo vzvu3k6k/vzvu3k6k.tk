@@ -56,3 +56,7 @@ https://github.com/vzvu3k6k/download-redmine-releases
     * チェックサムファイル内のファイルパスが`redmine-0.9.0.tar.gz`になっているので、`0.x/redmine-0.9.0.tar.gz`ではなく`./redmine-0.9.0.tar.gz`を探しに行ってしまうため。
     * ファイルごとに`pushd`, `popd`でカレントディレクトリを切り替えるくらいしか対策を思いつかなかった。
 * 1ファイルごとに`sha256sum`や`md5sum`のプロセスを起動しているのがコスト高そう。
+
+## `no checksum file found`
+
+チェックサムファイルが見つからなかったときのエラーメッセージ。最初は何も考えずに`checksum file is not found`と書いてたんだけど、[md5sumのエラーメッセージ](https://github.com/coreutils/coreutils/blob/6a3d2883fed853ee01079477020091068074e12d/src/md5sum.c#L816)がよさそうだったので真似した。情報量のある単語が先になっているのがいい。
