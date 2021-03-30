@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>system specのexampleの終了時に自動でスクリーンショットを撮る - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>system specのexampleの終了時に自動でスクリーンショットを撮る</h1>
+      <time datetime="2020-06-21">2020-06-21</time>
+    </header>
+    <p>という要件があった。以下のコードで実現できる。</p>
+<pre><code class="language-rb"># spec/support/take_screenshot_after_examples.rbとかに書いてrequireしておく
+module TakeScreenshotAfterExamples
+  extend ActiveSupport::Concern
+
+  included do
+    after do
+      page.save_screenshot
+    end
+  end
+end
+
+# spec/rails_helper.rb
+RSpec.configure do |config|
+  config.include TakeScreenshotAfterExamples, type: :system
+end
+</code></pre>
+<h2>うまくいかない方法</h2>
+<p>以下のような実装だと、（少なくともSeleniumのChromeとFirefoxのドライバーでは）真っ白なスクリーンショットが保存されてしまう。</p>
+<pre><code class="language-rb">RSpec.configure do |config|
+  config.after type: :system do
+    page.save_screenshot
+  end
+end
+</code></pre>
+<p>これは<a href="https://github.com/rspec/rspec-rails/blob/v4.0.1/lib/rspec/rails/example/system_example_group.rb#L107">rspec-railsの<code>SystemExampleGroup</code>のafterフック</a>が上記のフックよりも先に実行されて、その中（114行目）で<code>Capybara.reset_sessions!</code>が呼ばれてしまうため。</p>
+<p>RSpecのafterフックは、コンテキストの内側から順に、セットされたのとは逆順に呼ばれる。</p>
+<p><a href="https://rubydoc.info/gems/rspec-core/RSpec/Core/Hooks#after-instance_method">https://rubydoc.info/gems/rspec-core/RSpec/Core/Hooks#after-instance_method</a></p>
+<p>SystemExampleGroupの実装では、<code>RSpec.describe '...', type: :system</code>のコンテキストで<code>after</code>ブロックを呼んだのと同じ扱いになる。このコンテキストは<code>RSpec.configure</code>よりも「内側」にあたるので、<code>Capybara.reset_sessions!</code>が<code>page.save_screenshot</code>よりも先に実行されてしまう。</p>
+<p><code>SystemExampleGroup</code>と同じ方法を使えば、同じコンテキストで後にセットできるので、<code>Capybara.reset_sessions!</code>が呼ばれる前にスクリーンショットを撮ることができる。</p>
+<h2><code>Capybara.reset_sessions!</code>を呼ぶと何が起きるか</h2>
+<p>厳密には、<code>Capybara.reset_sessions!</code>を呼んだあとで画面が真っ白になるかどうかはドライバーの実装に依存する。</p>
+<p><code>reset_sessions!</code>の呼び出し先を追っていくと<code>driver.reset!</code>に行きつくが、このメソッドでブラウザの状態の初期化が行われている。Seleniumのドライバーごとの実装は以下。</p>
+<ul>
+<li>Chrome: <a href="https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver_specializations/chrome_driver.rb#L38">https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver_specializations/chrome_driver.rb#L38</a></li>
+<li>Firefox: <a href="https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver_specializations/firefox_driver.rb#L41">https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver_specializations/firefox_driver.rb#L41</a>
+<ul>
+<li><a href="https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver.rb#L129">https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver.rb#L129</a>
+<ul>
+<li><a href="https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver.rb#L463">https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver.rb#L463</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>大まかには、ストレージをクリアして、ウィンドウを1つだけ残して、<code>about:blank</code>を開くといった動作をしている。</p>
+<h2><code>Capybara.reset_sessions!</code>は二度呼ばれる</h2>
+<p>前述の<a href="https://github.com/rspec/rspec-rails/blob/v4.0.1/lib/rspec/rails/example/system_example_group.rb#L114">rspec-railsの<code>SystemExampleGroup</code></a>のほかに、<a href="https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/rspec.rb#L18">capybaraの<code>rspec.rb</code></a>でもコールバックをセットしているので、テストケース終了後に<code>Capybara.reset_sessions!</code>は二度呼ばれる。</p>
+<p>二度呼ぶ必要はなさそうだし、capybaraの<code>rspec.rb</code>のほうは消してもいいのではと思ったが、feature specにはrspec-railsから<code>Capybara.reset_sessions!</code>を呼ぶ処理がないので、単純に消すと既存のfeature specが壊れてしまうようだ。</p>
+<h2><code>Capybara.reset_sessions!</code>の不可解に見えたふるまいについて</h2>
+<p><code>Capybara.reset_sessions!</code>を上書きして実行をスキップするとスクリーンショットが撮れるのは前もって教えてもらっていたので、以下のような感じでパッチして呼び出し順を調べたりしていた。</p>
+<pre><code class="language-rb"># rails_helper.rb
+Capybara.singleton_class.prepend(Module.new {
+  def reset_sessions!
+    puts '--- reset_sessions! ---'
+    super
+  end
+})
+
+RSpec.configure do |config|
+  config.after type: :system do
+    puts '--- save_screenshot ---'
+    page.save_screenshot
+  end
+end
+</code></pre>
+<p>これは以下のような結果になる。</p>
+<pre><code>$ bundle exec rspec
+--- save_screenshot ---
+--- reset_sessions! ---
+
+Finished in 2.49 seconds (files took 0.77894 seconds to load)
+1 example, 0 failures
+</code></pre>
+<p>この結果からすると、<code>reset_sessions!</code>は<code>save_screenshot</code>のあとに呼ばれている。</p>
+<p>しかし、<code>reset_sessions!</code>のパッチに<code>super</code>を含めているときだけ（つまり本来の<code>reset_sessions!</code>の処理を呼び出しているときだけ）、スクリーンショットが真っ白になることがわかった。あとから呼び出された<code>Capybara.reset_sessions!</code>が前の<code>save_screenshot</code>の実行結果に影響を与えているように見える。</p>
+<p>テストケースの中で<code>save_screenshot</code>を呼ぶと<code>reset_sessions!</code>のパッチと関係なく常に正常なスクリーンショットが撮影できるのと考え合わせると、テストケースの終了後に実行される何らかの処理を通過すると、<code>reset_sessions!</code>が過去に呼び出された<code>save_screenshot</code>に影響を与えるようになるのか……？</p>
+<p>と思ったが実際にはそんなことはなく、</p>
+<ul>
+<li>前述のように<code>Capybara.reset_sessions!</code>は二度呼ばれる。capybaraは<code>rails_helper.rb</code>と同じ<code>RSpec.configure</code>のコンテキストで、先にコールバックをセットしているので、<code>rails_helper.rb</code>のコールバックよりも後に呼ばれる。</li>
+<li><a href="https://github.com/rspec/rspec-rails/blob/v4.0.1/lib/rspec/rails/example/system_example_group.rb#L109">rspec-railsの<code>SystemExampleGroup</code>のフック</a>は<code>$stdout</code>を一時的に<code>StringIO</code>のインスタンスに置き換えているので、<code>puts</code>の出力が横取りされる。</li>
+</ul>
+<p>というのが理由だった。<code>$stdout</code>の置き換えがなければ以下のように出力される。</p>
+<pre><code>--- reset_sessions! ---
+--- save_screenshot ---
+--- reset_sessions! ---
+</code></pre>
+<p>最初の<code>reset_sessions!</code>でブラウザがリセットされているので真っ白なスクリーンショットが撮れてしまうというだけの話だった。</p>
+<p>わかってしまえば簡単な話だが、pry-byebugで実行を追いかけるまで見当がつかず、かなり混乱していた。</p>
+<p>ところで、<code>$stdout</code>が上書きされているので<code>binding.irb</code>のREPLではコードの実行結果が飲み込まれてしまうのだけども、<code>binding.pry</code>のREPLではコードの実行結果が正しく表示された。何か特別な対応をしているのだろうか。</p>
+<h2>所感</h2>
+<p>類似の話題として、テストケースの終了後に<code>Capybara.reset_sessions!</code>が呼ばれるのを抑制したいという記事があった。</p>
+<p><a href="https://gongo.hatenablog.com/entry/2014/09/03/212513">https://gongo.hatenablog.com/entry/2014/09/03/212513</a></p>
+<p>この記事では<code>Capybara.reset_sessions!</code>を上書きして無効化している。既存のメソッドの上書きを避けるとしたら、フックのインスタンス変数を直接いじって削除するような方法を取るしかないのではないか。</p>
+<p>フック的なAPIはRSpecに限らずいろいろなところで使われているけれども、「すでにセットされているコールバックの振る舞いを変える」というのが難しくなりがちで、今回のように実行順を意識した遠回りな実装が必要になったり、コールバックで呼ばれるメソッドを上書きしたりといったハックを使わなければ対処できないことが多い。</p>
+<p>ではどうすればいいのか、というのはよくわからない。コールバックを操作するためのAPIを用意すれば多少楽になるのだろうが、操作対象のコールバックを特定するための情報が必要になる（たとえばJavaScriptの<code>removeEventListener</code>ではコールバック関数そのものを引数に受け取る）。Rubyでは匿名のブロックでコールバックをセットすることが多いので、あまり現実的ではないように思う。</p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/c93c578dcfdb91f830839b6eada58eff01f67f1a"><time>2020-06-21T06:22:35+09:00</time> <span>rspec.rbのコールバックを消すとfeature specが壊れる件を追記</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/4c9a548405fd035fee52b254cb6babca21cbc5c7"><time>2020-06-21T04:35:52+09:00</time> <span>記事追加</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

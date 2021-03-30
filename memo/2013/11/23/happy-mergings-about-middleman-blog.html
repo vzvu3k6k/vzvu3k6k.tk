@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>happy mergings about middleman-blog - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>happy mergings about middleman-blog</h1>
+      <time datetime="2013-11-23">2013-11-23</time>
+    </header>
+    <p>middleman-blogに関連するいくつかのプルリクを送ったという話。ちょっとした問題を解決しようとしたら予想外にいろいろと引っかかったので覚え書きをしておく。実用的な情報はあまりない。</p>
+<h2>フィードが見つからない</h2>
+<p><a href="http://r7kamura.github.io/">r7kamura blog</a>をフィードリーダーに登録しようとしたが、フィードが見つからなかった。</p>
+<p>このサイトは<a href="http://r7kamura.github.io/2013/11/10/hello-world.html">Middlemanを使って生成していて、GitHub Pagesを使って公開している</a>。Middlemanを利用したブログサイトで、フィードは用意してしてもリンクを貼り忘れるというケースは時々あるようで、以前にも<a href="https://github.com/f440/f440.github.com/pull/1">オートディスカバリーを追加するプルリク</a>を送ったことがあった。GitHubのリポジトリをざっと眺めてみると、<code>/feed.xml</code>があるのが確認できた。よかったよかった。</p>
+<h2>フィードが壊れている</h2>
+<p>ところが、<code>http://r7kamura.github.io/feed.xml</code>にアクセスしてみると、フィードのタイトルが”Blog Name”になっていて、何かおかしい。よく見ると記事のURLのホスト名も<code>http://blog.url.com/</code>になっている。フィードの設定がデフォルトのままになっているらしい。これでは読者である自分が困る、ということで<a href="https://github.com/r7kamura/r7kamura.github.io/commit/de4387d8e20b55dd1e95063f01b3baae953e3583">feed.xmlを修正するコミット</a>をしてプルリクを出すことにした。</p>
+<p>上記のコミットを見てもらえば分かるように、<code>feed.xml</code>の実体はただのテンプレートだから簡単に書き換えることができる。ただ、<code>site_url</code>という変数にホスト名を入れるという仕組みが気になった。これではブログのホストが変わるたびにフィードのテンプレートを書き換えないといけない。ホスト名抜きのURL（<code>http://example.com/foo</code>ではなく<code>/foo</code>と指定するようなURL）ではいけないのだろうかと思って調べてみたが、Atomの<code>entry</code>要素の<code>id</code>プロパティは省略不可で、内容は完全なURLでなければいけないと定められているのでどうしようもない（参照：<a href="http://tools.ietf.org/html/rfc4287">RFC 4287 - The Atom Syndication Format</a>, <a href="https://github.com/middleman/middleman-blog/pull/130">Make feed.xml entry URLs absolute by rmm5t · Pull Request #130 · middleman/middleman-blog</a>）。とりあえず、サイト名や著者名などが<code>config.rb</code>で定義されていたので、ドメイン名もそちらに書くように変更しておいた。</p>
+<h2>オートディスカバリーを追加する</h2>
+<p>ついでにオートディスカバリーも追加するプルリクを書こうとしたのだが、<q cite="http://r7kamura.github.io/2013/11/10/hello-world.html">Middlemanにはブログを作るための拡張機能があるので、これを使えば簡単に雛形を生成できる</q>という一文が気になった。middleman-blogの雛形を確認してみると、<code>feed.xml</code>はあったが、オートディスカバリーはなかった。</p>
+<p>そのまま<code>/feed.xml</code>とURLを指定するよりスマートなやり方があるのではないかと思って、Sitemapとか<code>asset_path</code>メソッドの実装とかをいろいろ調べた結果、結局URLを直接書くのがよさそうだということになった。pryでメソッドを呼び出したり変数を確認したりしつつ<code>show-method</code>でメソッドのコードを確認していくのが楽でよかった。</p>
+<h2>Middlemanが壊れた？</h2>
+<p>Middlemanをサーバーモードで動かしているとき、<code>http://0.0.0.0:4567/__middleman/</code>にアクセスするとSitemapや設定がきれいに表示されて便利なのだが、気がついたらSitemapや設定一覧にアクセスできなくなってしまった。スタイルシートもなぜか当たっていない。設定を変更しても、これまでのコミットをリバートしても、新しいテンプレートを作っても動かない。関連しそうなGemを入れなおしてみるが改善されない。</p>
+<p>一時間以上悩んだ気がするけど、原因は単純で、<code>http://0.0.0.0:4567/__middleman</code>ではなく<code>http://0.0.0.0:4567/__middleman/</code>を開かないといけないのだった。末尾の<code>/</code>が抜けていてもそのままページは表示されるのだが、ページ内のリソースやリンクはすべて相対URLで指定されていたので、たとえば本来なら<code>/__middleman/config</code>を読み込むべきところで<code>/config</code>を読み込んでしまう。</p>
+<h2>テストに失敗</h2>
+<p>気を取り直してmiddleman-blogのほうに<a href="https://github.com/middleman/middleman-blog/commit/f81fc5f2b27826ed91d2885d5a1abde833798984">Add autodiscovery of feed.xml to layout.erb</a>という変更を入れてから、念のため<code>bundle exec rake test</code>でテストを実行してみるとなぜか失敗した。調べてみると、もともとmiddlemanのほうに一時的にバグがあったらしい。以下のプルリクとコミットを参照。</p>
+<ul>
+<li><a href="https://github.com/middleman/middleman/pull/1072">add the missing file back for the automatic_alt_tag feature by stevenosloan · Pull Request #1072 · middleman/middleman · GitHub</a></li>
+<li><a href="https://github.com/middleman/middleman/commit/95c0fe60accc2bc5a8e4d559e0263da977ddbcb2">whoops, bad rename · 95c0fe6 · middleman/middleman</a></li>
+</ul>
+<p>必要なファイルをうっかり消していたので<code>require</code>でエラーが出たという単純なバグ。上記のコミットによって修正されている。</p>
+<h2><code>bundle install</code>に失敗</h2>
+<p>middlemanのバグを手元で修正してテストを走らせるべく<code>bundle install</code>を実行してみるとdebuggerというgemのインストールに失敗した。ruby2.1.0-preview1で実行していたのだが、「2.1は対応していないバージョンです」という感じのメッセージが出てインストールが強制的に終了してしまう。そもそもプルリクを出すときにpreview版を使っていたのがよくなかった。</p>
+<p>rbenvで2.0系のリリース版を入れる。gemをインストールしなおすのが面倒なのでとりあえず2.1.0-preview1の<code>gems</code>にシンボリックリンクを貼って動かしてみたが、確か<a href="http://rubygems.org/gems/ffi">ffi</a>が「なんとかかんとか.soファイルが見つからないです」という感じのエラーを出したのでくじけて寝た。</p>
+<h2>プルリクを送る</h2>
+<p>当初の目的からずいぶん離れてしまったので、とにかくfeed.xmlを修正するプルリクを送った。descriptionを書き足すために編集画面を開こうとしたらすでに<a href="https://github.com/r7kamura/r7kamura.github.io/pull/1">マージ</a>されていて、その後もいくつかプルリクを送ったら即座にマージされるという感じでテンションが上がったので、<a href="https://github.com/middleman/middleman-blog/">middleman/middleman-blog</a>にもエイヤッと<a href="https://github.com/middleman/middleman-blog/pull/173">Add autodiscovery of feed.xml to layout.erb</a>を送ったら、こちらもさくっとマージしてもらえた。</p>
+<h2>その後</h2>
+<p>フィードリーダーを開いたら<a href="http://r7kamura.github.io/2013/11/15/happy-pull-request.html">happyな記事</a>が流れてきた。</p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/ca627e43ee665cd3c9399d7c403c01903e3c08e9"><time>2014-06-14T00:20:07+09:00</time> <span>Calm down</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/86bc849e7e837836080afeff45d6f389fd0b0bc5"><time>2013-11-23T00:59:02+09:00</time> <span>Add a post</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

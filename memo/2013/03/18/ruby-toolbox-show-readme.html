@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ruby ToolboxでプロジェクトのREADMEをその場で開くユーザースクリプト - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>Ruby ToolboxでプロジェクトのREADMEをその場で開くユーザースクリプト</h1>
+      <time datetime="2013-03-18">2013-03-18</time>
+    </header>
+    <p><a href="https://github.com/vzvu3k6k/ruby-toolbox-show-readme.user.js">vzvu3k6k / ruby-toolbox-show-readme.user.js</a></p>
+<img src="/memo/img/ruby-toolbox-show-readme-image.png">
+<p>Rubyのライブラリをジャンルごとに分類して人気順に配列している<a href="https://www.ruby-toolbox.com/">The Ruby Toolbox</a>。便利なんだけど、ライブラリの説明文が大雑把すぎてそれぞれの違いがよく分からないことがある。READMEをその場で読めれば便利なのではないかと思って作った。虫眼鏡アイコンをクリックすると、GithubのAPIでリポジトリからREADMEが取得され、挿入される。</p>
+<p>READMEは<a href="http://developer.github.com/v3/repos/contents/">GithubのAPI</a>でHTMLに変換されたものをそのままページ内に追加している。HTMLにJavaScriptが混入されないように配慮されてはいるが（<a href="https://github.com/vzvu3k6k/Spoon-Knife/blob/fb6b9709e13b75e03c13c76302c7fe020d1ef83a/README.md">scriptタグ、onerror=“alert(1)”、<a href="javascript:...">などはHTML化で消される</a>）、もしかしたら抜け道があるかもしれない。</p>
+<p><code>pre</code>タグの1行あたりの字数が多いと横方向にはみ出してしまう。折り返したり、表示域を制限して横スクロールしないと見れないようにすると不便なのでそのままにした。</p>
+<p>RubygemやGithubのセクションの右上の虫眼鏡アイコンにポインタを乗せると依存情報やコントリビューターの一覧などが出てくることに、このスクリプトを書いていて初めて気づいた。最初、あるプロジェクトだけgemの依存関係とかが表示されていて（たまたまポインタが虫眼鏡の上を通ったらしい）、「なんでこいつだけこんな情報が出てるんだ？」としばらく悩んだ。READMEの読み込みはやや重い処理だと思うので、マウスオーバーではなくクリックで実行されるようにしている。</p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/c2953077222e4fbb2511bccd4e66cbbf98be963d"><time>2020-06-21T11:11:52+09:00</time> <span>Remove baseurl</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/93cf4e56683d2db1c351118260b39d46dc5cd801"><time>2013-11-22T22:32:00+09:00</time> <span>&quot;s/{{ site.baseurl }}\/img/{{ site.baseurl }}img/g&quot; in _posts</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/4b8a329e13502c8032a9c3741fe81fec2433c991"><time>2013-11-19T21:42:26+09:00</time> <span>Many changes</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

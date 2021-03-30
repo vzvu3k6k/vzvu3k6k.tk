@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Tumblrの省メモリーな無限スクロール - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>Tumblrの省メモリーな無限スクロール</h1>
+      <time datetime="2014-04-26">2014-04-26</time>
+    </header>
+    <p><a href="http://netyougo.com/webservice/13825.html">無限スクロール</a>またはauto pagingと呼ばれるUIには、読み終えたコンテンツがどんどん画面の上のほうに溜まっていってメモリーを食い潰すという問題がある。</p>
+<p>なかでもTumblrは画像などのコンテンツが多いため、ダッシュボードダイバーたちは<a href="http://joodle.tumblr.com/post/14352059524/supertumblr">無限Tumblrユーザースクリプト</a>などのユーザースクリプトをインストールして、読み終えたコンテンツを定期的にページ上から自動削除するといった対策を講じていた。</p>
+<p>ところが最近のTumblrのダッシュボードでは、ポストが画面外に出るとその中の要素が一時的にページから削除され、画面内に表示されると要素が再度復元されるようになっている。どうやらこれによって無限スクロールによるメモリーの圧迫が抑えられているらしい。</p>
+<p>関連するコードは<a href="https://secure.assets.tumblr.com/assets/scripts/dashboard.js">https://secure.assets.tumblr.com/assets/scripts/dashboard.js</a>の<code>/*! scripts/ghostlist.js */</code>や<code>/*! scripts/fast_dashboard.js */</code>の付近にある。具体的には、表示領域から大きく外れたポストの子要素に対して</p>
+<ol>
+<li>imgのsrcには一時的にダミーのgif画像を入れる</li>
+<li><code>jQuery.browser.mozilla</code>が真なら、DOMノードをクロージャー内の変数に保持してページ上からは削除する。偽なら<code>node.style.display = &quot;none&quot;</code>で非表示にする。</li>
+</ol>
+<p>という処理をしている。表示領域に入ったらノードが復元される。<code>jQuery.browser.mozilla</code>が真の場合にはaudioやvideoのポストには処理が行われない。これはスクロールすると動画や音楽が勝手に停止したり、再生位置が失われたりするのを防ぐためだと思う。そのほかに一時的に退避させたbackground-image属性を復元する関数もあったが、属性を退避させるコードはどこにあるのか分からなかった。</p>
+<p>ノードを完全に消してしまうよりも賢い解決策だと思うが、読み終わったポストをページ内検索で探すことができなくなるのがちょっと気になる。</p>
+<p>実装面では、ノードを隠す関数の返り値が自分の行った処理を復元する関数になっているのが面白い。ノードをそのまま返すのではなくfunctionで包むぶん、少しだけメモリーを余分に使いそうな気がする。その一方、クロージャーに内包される不要な変数にはこまめにnullを代入してメモリーの浪費を抑えている。</p>
+<p>この機能はghostlistという名前で実装されているが、一般的な名称ではないらしく、“infinite scroll ghostlist”や”auto paging ghostlist”でググってみても、<a href="https://github.com/atesh/ghostlist/">atesh/ghostlist · GitHub</a>ぐらいしか見つからなかった。</p>
+<h2>2番目の処理について</h2>
+<p>2番目の処理は本当に効果があるのか疑問だったので、Chromeのdevtoolのtimelineを使ってメモリーの使用量を確認した。</p>
+<p>ただし、</p>
+<blockquote>
+  <p>display noneするとRenderTreeから要素が消えるからその分はメモリ減るかな。メモリ使用量をどうやって測っているのかきになる。V8ヒープ領域のみ見ているように見える。</p>
+  <footer>
+    — <a href="http://b.hatena.ne.jp/nyaxt/20140613#bookmark-199467470">b:id:nyaxt:20140613</a>
+  </footer>
+</blockquote>
+<p>とのことで、この方法では正しくメモリーの使用量が測れていないらしい。</p>
+<h3><code>display = &quot;none&quot;</code>方式</h3>
+<p>GCを実行したあと、<code>document.body.style.display = &quot;none&quot;</code>や<code>Array.prototype.forEach.call(document.body.children, function(i){i.style.display = &quot;none&quot;})</code>などを実行してみたが、特に変化がない気がする。</p>
+<h3>ノードを変数で保持してページ上から削除する方式</h3>
+<p>Firefoxで検証するべきだが、とりあえずChromeを使って調べた。</p>
+<p>適当なページを開いて、まず<code>Array.prototype.slice.call(document.querySelectorAll('img'), 0).forEach(function(i){i.remove()})</code>で画像を消し（1に相当）、GCを実行する。それから<code>a = Array.prototype.slice.call(document.body.children, 0).map(function(i){i.remove(); return i})</code>でbodyの子要素を退避（2に相当）。GCを実行した直後と子要素を退避させた後のメモリーの使用量の差を確かめる。</p>
+<dl>
+  <dt><a href="http://www.nicovideo.jp/">http://www.nicovideo.jp/</a></dt>
+  <dd><img src="/memo/img/ghostlist_nicovideo.png"><br>子要素を退避させた直後にはメモリーの使用量が増加しているが、その後しばらくすると退避前よりも使用量が減少している。</dd>
+  <dt><a href="http://www.asahi.com/">http://www.asahi.com/</a></dt>
+  <dd><img src="/memo/img/ghostlist_asahi.png"><br>同上。</dd>
+  <dt><a href="https://www.google.co.jp/search?q=dom+memory&amp;num=100">https://www.google.co.jp/search?q=dom+memory&num=100</a></dt>
+  <dd>何もしていなくてもメモリーの使用量のグラフがきれいなノコギリ波を描く。裏で走っているタイマーが大量にオブジェクトを生成していて、定期的にGCが行われているのではないかと思う。画像を消しても子要素を退避しても、ほとんど変化が見られない。むしろ微妙に使用量が増える。</dd>
+  <dt><a href="http://jsfiddle.net/vzvu3k6k/fQce4/">http://jsfiddle.net/vzvu3k6k/fQce4/</a></dt>
+  <dd>効果なし。微妙に使用量が増える。</dd>
+</dl>
+<p>グラフィカルなページではメモリーの使用量を抑える効果が見られるが、テキスト主体のシンプルなページでは意味がないようだ。</p>
+<h2>関連</h2>
+<ul>
+<li><a href="http://xkit-extension.tumblr.com/post/61016195061/xkit-dashboardgl">XKit - XKit DashboardGL</a> - 2013/09/12の記事。1週間ほど前に、画像を隠すことでスクロールを高速化する機能がTumblrに実装されたと報告している。当時はDashboardGLと呼ばれていたようだ。</li>
+<li><a href="http://dannysu.com/2012/07/07/infinite-scroll-memory-optimization/">Infinite Scroll Memory Optimization</a> - 表示領域外の要素を消すというアプローチを取った例。無限スクロールで追加される要素が画像だけなので、画面上からノードを消してJavaScriptの変数として保持するということはしていない。コメント欄に<a href="https://github.com/dannysu/eol-infinite-scroll">ソースへのリンク</a>がある。
+<ul>
+<li>ちなみにGoogleの画像検索でも、画面外に出た一部のimg要素のsrc属性を一時的に消しておいて、画面に表示されたらsrcを戻すということをしている。</li>
+</ul>
+</li>
+<li><a href="http://let.hatelabo.jp/vzvu3k6k/let/hLHX5ZrPpLVS">Autopagerize: Delete old pages - Hatena::Let</a> - Autopagerizeで挿入されたページを最後のもの以外全部消すブックマークレット</li>
+<li><a href="https://gist.github.com/vzvu3k6k/11295076">Tumblr: Empty trails on dashboard</a>というuserscriptを書いててGhostListの存在に気づいた。</li>
+<li><a href="http://vzvu3k6k.tk/memo/2014/04/27/better-infinite-scroll.html">無限スクロールの問題点と解決方法 - 記録</a></li>
+</ul>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/c2953077222e4fbb2511bccd4e66cbbf98be963d"><time>2020-06-21T11:11:52+09:00</time> <span>Remove baseurl</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/9a9a1f4e94d5cef0b007644c5c0ccb8bfd1437be"><time>2014-07-06T01:41:41+09:00</time> <span>「無限スクロールの問題点と解決方法」にリンク</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/de4eccc5945db1451513ecf5880d79b2848e11dd"><time>2014-06-14T23:19:33+09:00</time> <span>&quot;Xkit - XKit DashboardGL&quot;へのリンクを追加</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/53009f8e5b51e8addf62b6ece1f9f105fb491aac"><time>2014-06-14T01:48:43+09:00</time> <span>b:id:nyaxt:20140613の指摘を追記</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/1ef60d409e489f80abd424d37a1d9d62d3d351a5"><time>2014-05-04T00:21:11+09:00</time> <span>Minor fixes</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/188c05d34f403a6263e997a55a1d87154eed6286"><time>2014-05-04T00:16:30+09:00</time> <span>読み終わったポストをページ内検索で探せないことについて</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/eb02547633c40538da288e5761266df98580e561"><time>2014-05-04T00:13:11+09:00</time> <span>ブラウザによって動作を変えていることを追記、audioとvideoの扱いについて修正</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/3f28761c9486bb999b25a2647616da1a58a3dbcb"><time>2014-04-26T01:39:54+09:00</time> <span>Add a post</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

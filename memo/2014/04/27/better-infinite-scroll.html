@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>無限スクロールの問題点と解決方法 - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>無限スクロールの問題点と解決方法</h1>
+      <time datetime="2014-04-27">2014-04-27</time>
+    </header>
+    <p>無限スクロールとは、ページの下部までスクロールすると自動的に新しい要素が追加される機能のこと。TwitterなどのSNSのタイムラインを初めとして様々なウェブサイトで使われているが、いくつかの問題点も指摘されている。</p>
+<p>無限スクロールのよく知られた問題点と、それに対する解決方法をまとめた。</p>
+<h2>別のページに移動してから戻ると継ぎ足しがリセットされる</h2>
+<p>リンクがクリックされたときは常に新しいウィンドウを開くようにしたり、 <a href="http://www.lokeshdhakar.com/projects/lightbox2/">Lightbox</a>のようなモーダルな擬似ウィンドウをページ内に開いたりすることで、ページの遷移そのものを抑制するという方法がある。</p>
+<p>また、次の項目で紹介する「History APIでURLを書き換える」という方法を使えば、読み進んだ位置は復元される。</p>
+<h2>permalinkが取れない</h2>
+<p>同じページに次々と新しい内容が継ぎ足されていくので、いま自分が見ているページのURLが分からないという問題。</p>
+<h3>History APIでURLを書き換える</h3>
+<p>スクロール位置に応じてHistory APIでURLを書き換える。</p>
+<p><a href="http://weheartit.com/">We Heart It</a>が実装している。</p>
+<h3>リンクを追加する</h3>
+<p>次のページを追加する際にpermalinkも追加する。</p>
+<p><a href="http://autopagerize.net/">AutoPagerize</a>（任意のウェブサイトに無限スクロール機能を追加できるブラウザ拡張）はこの方式を取っている。</p>
+<h2>ページを飛ばせない</h2>
+<p>ページの最下部までスクロールすることでしか次のページを表示できない場合、何ページか飛ばして読んだりすることができない。</p>
+<h3>ナビゲーションを追加する</h3>
+<p><a href="http://weheartit.com/">We Heart It</a>ではページの右下にこのようなナビゲーションを設けている。テキストボックスにページ番号を入力してEnterを押すとそのページに移動できる。</p>
+<p><img src="/memo/img/better-infinite-scroll-navigation.png" alt="" /></p>
+<h2>メモリーが食い潰される</h2>
+<p><a href="/memo/2014/04/26/tumblr-ghostlist.html">Tumblrの省メモリーな無限スクロール</a>を参照。</p>
+<h2>参考</h2>
+<ul>
+<li><a href="http://gihyo.jp/dev/serial/01/front-end_web/000202?page=2">第2回　スクロールとページングのUIを考える（2）：フロントエンドWeb戦略室｜gihyo.jp … 技術評論社</a></li>
+<li><a href="http://xkcd.com/1309/">xkcd: Infinite Scrolling</a></li>
+</ul>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/c2953077222e4fbb2511bccd4e66cbbf98be963d"><time>2020-06-21T11:11:52+09:00</time> <span>Remove baseurl</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/577b0b33cb9191394887e4e91477b8ee2f067603"><time>2014-06-14T00:14:36+09:00</time> <span>別のページに移動してから戻ると継ぎ足しがリセットされる問題を追加</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/955f3273b38b9be8dfb5ca83c3c0c358c34791b6"><time>2014-04-27T23:05:50+09:00</time> <span>Add a post</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

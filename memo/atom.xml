@@ -1,0 +1,1171 @@
+<?xml version="1.0"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ 
+  <title>記録</title>
+  <link href="https://vzvu3k6k.tk/memo/"/>
+  <link type="application/atom+xml" rel="self" href="https://vzvu3k6k.tk/memo/atom.xml"/>
+  <updated>2021-03-31T01:15:32+09:00</updated>
+  <id>https://vzvu3k6k.tk/memo/</id>
+  <author>
+    <name>vzvu3k6k</name>
+    <uri>https://vzvu3k6k.tk/</uri>
+  </author>
+
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2020/09/12/download-redmine-releases</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2020/09/12/download-redmine-releases.html"/>
+    <title>vzvu3k6k/download-redmine-releases</title>
+    <published>2020-09-12T00:00:00+09:00</published>
+    <updated>2020-09-12T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/vzvu3k6k/download-redmine-releases&quot;&gt;https://github.com/vzvu3k6k/download-redmine-releases&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://redmine.org/releases/&quot;&gt;https://redmine.org/releases/&lt;/a&gt;からtarballをダウンロードする簡単なbashスクリプトを書いた。tar.gzファイルだけでも全部ダウンロードすると400MBほどある。&lt;/p&gt;
+&lt;p&gt;ソースコードを取得するだけなら&lt;a href=&quot;https://github.com/redmine/redmine&quot;&gt;https://github.com/redmine/redmine&lt;/a&gt;を使ったほうが楽だし早そうだが、今回は公式にリリースされているものを確認したかったので&lt;a href=&quot;https://redmine.org/releases/&quot;&gt;https://redmine.org/releases/&lt;/a&gt;を利用した。&lt;/p&gt;
+&lt;h2&gt;wgetの&lt;code&gt;--timestamping&lt;/code&gt;と&lt;code&gt;--no-clobber&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;スクリプトを一度実行してすべてのファイルをダウンロードしたら、次の実行では新たに追加されたファイルだけを取得したい。wgetでは次のようなオプションが使える。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;--timestamping&lt;/code&gt;: ファイルの最終更新日時から&lt;code&gt;If-Modified-Since&lt;/code&gt;ヘッダーを生成して問い合わせる&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;--no-clobber&lt;/code&gt;: 同名のファイルがローカルに存在していたらリクエストを送らない&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;バージョン番号の打たれたリリース物があとから書き換えられることはなさそうなので、今回は&lt;code&gt;--no-clobber&lt;/code&gt;を使うことにした。&lt;/p&gt;
+&lt;p&gt;一部では&lt;a href=&quot;https://stackoverflow.com/questions/4944295/skip-download-if-files-exist-in-wget#comment54212653_4944353&quot;&gt;&lt;code&gt;--no-clobber&lt;/code&gt;は同名のファイルが存在していても保存をスキップするだけでリクエストは送るよ、いや送らないぞといった混乱がある&lt;/a&gt;が、手元のwget 1.20.3では&lt;code&gt;wget --no-clobber localhost:4567/01.txt&lt;/code&gt;のようなシンプルなコマンドではリクエストは送信されなかった。&lt;/p&gt;
+&lt;p&gt;どうやらバージョンごとに動作が違うらしい。少なくとも2008年2月ごろにリクエストを送信しないように修正された記録がある。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;2008-02-03: &lt;a href=&quot;https://git.savannah.gnu.org/cgit/wget.git/commit/?id=c1b7382ec4c25c23c81a0e0964d94fff72c6a633&quot;&gt;c1b7382&lt;/a&gt;でスキップ処理が追加されたっぽい&lt;/li&gt;
+&lt;li&gt;2008-02-06: &lt;a href=&quot;https://git.savannah.gnu.org/cgit/wget.git/commit/?id=cb7d0840a0bb0d976fb856fbbc2d424a0b1948a8&quot;&gt;cb7d084&lt;/a&gt;でスキップ処理を追加したことがChangeLogとNEWSに記載された&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;きちんとchangelogが残されていて助かる。&lt;/p&gt;
+&lt;h2&gt;wgetの&lt;code&gt;--accept&lt;/code&gt;, &lt;code&gt;--reject&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;ダウンロードするファイルとしないファイルを指定できる。引数に含まれている文字によって挙動が変わる。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;*&lt;/code&gt;, &lt;code&gt;?&lt;/code&gt;, &lt;code&gt;[&lt;/code&gt;, &lt;code&gt;]&lt;/code&gt;が含まれていればパターン扱い
+&lt;ul&gt;
+&lt;li&gt;manには”treated as a pattern”としか書かれていなくて具体的な定義はなさそう。たぶんグロブ的ななにかだと思う。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;そうでなければ後方一致&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;値によっていい感じに暗黙的に挙動を切り替える仕様は、想定が甘いと「いい感じ」にならなくてユーザーの混乱を招くことがあるが、これは比較的うまくいっているケースのように思える。（でも次に使うときにはルール忘れてるかも）&lt;/p&gt;
+&lt;h2&gt;wgetでApacheのindexページのソートリンクを無視する&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Apacheのindexページには &lt;a href=&quot;https://www.redmine.org/releases/?C=N;O=D&quot;&gt;https://www.redmine.org/releases/?C=N;O=D&lt;/a&gt; で名前順ソート、みたいなリンクがついている&lt;/li&gt;
+&lt;li&gt;wgetでは&lt;code&gt;--reject-regex '\?C='&lt;/code&gt;で無視するのが楽そう&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;チェックサムファイルの検証&lt;/h2&gt;
+&lt;p&gt;最近のリリースではSHA256のチェックサムファイルが用意されているが、古いリリースにはMD5のチェックサムファイルしかない。SHA256のほうが衝突耐性が高いらしいので、そちらを優先して使うようにしている。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;サブディレクトリに置かれているファイルのチェックサム検証
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;md5sum -c 0.x/redmine-0.9.0.tar.gz.md5&lt;/code&gt;では以下のようなエラーが出て失敗する。
+&lt;pre&gt;&lt;code&gt;md5sum: redmine-0.9.0.tar.gz: No such file or directory
+redmine-0.9.0.tar.gz: FAILED open or read
+md5sum: WARNING: 1 listed file could not be read
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;li&gt;チェックサムファイル内のファイルパスが&lt;code&gt;redmine-0.9.0.tar.gz&lt;/code&gt;になっているので、&lt;code&gt;0.x/redmine-0.9.0.tar.gz&lt;/code&gt;ではなく&lt;code&gt;./redmine-0.9.0.tar.gz&lt;/code&gt;を探しに行ってしまうため。&lt;/li&gt;
+&lt;li&gt;ファイルごとに&lt;code&gt;pushd&lt;/code&gt;, &lt;code&gt;popd&lt;/code&gt;でカレントディレクトリを切り替えるくらいしか対策を思いつかなかった。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;1ファイルごとに&lt;code&gt;sha256sum&lt;/code&gt;や&lt;code&gt;md5sum&lt;/code&gt;のプロセスを起動しているのがコスト高そう。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;&lt;code&gt;no checksum file found&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;チェックサムファイルが見つからなかったときのエラーメッセージ。最初は何も考えずに&lt;code&gt;checksum file is not found&lt;/code&gt;と書いてたんだけど、&lt;a href=&quot;https://github.com/coreutils/coreutils/blob/6a3d2883fed853ee01079477020091068074e12d/src/md5sum.c#L816&quot;&gt;md5sumのエラーメッセージ&lt;/a&gt;がよさそうだったので真似した。情報量のある単語が先になっているのがいい。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2020/06/21/take-screenshot-after-examples-on-rails</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2020/06/21/take-screenshot-after-examples-on-rails.html"/>
+    <title>system specのexampleの終了時に自動でスクリーンショットを撮る</title>
+    <published>2020-06-21T00:00:00+09:00</published>
+    <updated>2020-06-21T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;という要件があった。以下のコードで実現できる。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rb&quot;&gt;# spec/support/take_screenshot_after_examples.rbとかに書いてrequireしておく
+module TakeScreenshotAfterExamples
+  extend ActiveSupport::Concern
+
+  included do
+    after do
+      page.save_screenshot
+    end
+  end
+end
+
+# spec/rails_helper.rb
+RSpec.configure do |config|
+  config.include TakeScreenshotAfterExamples, type: :system
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;うまくいかない方法&lt;/h2&gt;
+&lt;p&gt;以下のような実装だと、（少なくともSeleniumのChromeとFirefoxのドライバーでは）真っ白なスクリーンショットが保存されてしまう。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rb&quot;&gt;RSpec.configure do |config|
+  config.after type: :system do
+    page.save_screenshot
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;これは&lt;a href=&quot;https://github.com/rspec/rspec-rails/blob/v4.0.1/lib/rspec/rails/example/system_example_group.rb#L107&quot;&gt;rspec-railsの&lt;code&gt;SystemExampleGroup&lt;/code&gt;のafterフック&lt;/a&gt;が上記のフックよりも先に実行されて、その中（114行目）で&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;が呼ばれてしまうため。&lt;/p&gt;
+&lt;p&gt;RSpecのafterフックは、コンテキストの内側から順に、セットされたのとは逆順に呼ばれる。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://rubydoc.info/gems/rspec-core/RSpec/Core/Hooks#after-instance_method&quot;&gt;https://rubydoc.info/gems/rspec-core/RSpec/Core/Hooks#after-instance_method&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;SystemExampleGroupの実装では、&lt;code&gt;RSpec.describe '...', type: :system&lt;/code&gt;のコンテキストで&lt;code&gt;after&lt;/code&gt;ブロックを呼んだのと同じ扱いになる。このコンテキストは&lt;code&gt;RSpec.configure&lt;/code&gt;よりも「内側」にあたるので、&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;が&lt;code&gt;page.save_screenshot&lt;/code&gt;よりも先に実行されてしまう。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;SystemExampleGroup&lt;/code&gt;と同じ方法を使えば、同じコンテキストで後にセットできるので、&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;が呼ばれる前にスクリーンショットを撮ることができる。&lt;/p&gt;
+&lt;h2&gt;&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;を呼ぶと何が起きるか&lt;/h2&gt;
+&lt;p&gt;厳密には、&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;を呼んだあとで画面が真っ白になるかどうかはドライバーの実装に依存する。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;reset_sessions!&lt;/code&gt;の呼び出し先を追っていくと&lt;code&gt;driver.reset!&lt;/code&gt;に行きつくが、このメソッドでブラウザの状態の初期化が行われている。Seleniumのドライバーごとの実装は以下。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Chrome: &lt;a href=&quot;https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver_specializations/chrome_driver.rb#L38&quot;&gt;https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver_specializations/chrome_driver.rb#L38&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Firefox: &lt;a href=&quot;https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver_specializations/firefox_driver.rb#L41&quot;&gt;https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver_specializations/firefox_driver.rb#L41&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver.rb#L129&quot;&gt;https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver.rb#L129&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver.rb#L463&quot;&gt;https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/selenium/driver.rb#L463&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;大まかには、ストレージをクリアして、ウィンドウを1つだけ残して、&lt;code&gt;about:blank&lt;/code&gt;を開くといった動作をしている。&lt;/p&gt;
+&lt;h2&gt;&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;は二度呼ばれる&lt;/h2&gt;
+&lt;p&gt;前述の&lt;a href=&quot;https://github.com/rspec/rspec-rails/blob/v4.0.1/lib/rspec/rails/example/system_example_group.rb#L114&quot;&gt;rspec-railsの&lt;code&gt;SystemExampleGroup&lt;/code&gt;&lt;/a&gt;のほかに、&lt;a href=&quot;https://github.com/teamcapybara/capybara/blob/3.32.2/lib/capybara/rspec.rb#L18&quot;&gt;capybaraの&lt;code&gt;rspec.rb&lt;/code&gt;&lt;/a&gt;でもコールバックをセットしているので、テストケース終了後に&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;は二度呼ばれる。&lt;/p&gt;
+&lt;p&gt;二度呼ぶ必要はなさそうだし、capybaraの&lt;code&gt;rspec.rb&lt;/code&gt;のほうは消してもいいのではと思ったが、feature specにはrspec-railsから&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;を呼ぶ処理がないので、単純に消すと既存のfeature specが壊れてしまうようだ。&lt;/p&gt;
+&lt;h2&gt;&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;の不可解に見えたふるまいについて&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;を上書きして実行をスキップするとスクリーンショットが撮れるのは前もって教えてもらっていたので、以下のような感じでパッチして呼び出し順を調べたりしていた。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rb&quot;&gt;# rails_helper.rb
+Capybara.singleton_class.prepend(Module.new {
+  def reset_sessions!
+    puts '--- reset_sessions! ---'
+    super
+  end
+})
+
+RSpec.configure do |config|
+  config.after type: :system do
+    puts '--- save_screenshot ---'
+    page.save_screenshot
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;これは以下のような結果になる。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ bundle exec rspec
+--- save_screenshot ---
+--- reset_sessions! ---
+
+Finished in 2.49 seconds (files took 0.77894 seconds to load)
+1 example, 0 failures
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;この結果からすると、&lt;code&gt;reset_sessions!&lt;/code&gt;は&lt;code&gt;save_screenshot&lt;/code&gt;のあとに呼ばれている。&lt;/p&gt;
+&lt;p&gt;しかし、&lt;code&gt;reset_sessions!&lt;/code&gt;のパッチに&lt;code&gt;super&lt;/code&gt;を含めているときだけ（つまり本来の&lt;code&gt;reset_sessions!&lt;/code&gt;の処理を呼び出しているときだけ）、スクリーンショットが真っ白になることがわかった。あとから呼び出された&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;が前の&lt;code&gt;save_screenshot&lt;/code&gt;の実行結果に影響を与えているように見える。&lt;/p&gt;
+&lt;p&gt;テストケースの中で&lt;code&gt;save_screenshot&lt;/code&gt;を呼ぶと&lt;code&gt;reset_sessions!&lt;/code&gt;のパッチと関係なく常に正常なスクリーンショットが撮影できるのと考え合わせると、テストケースの終了後に実行される何らかの処理を通過すると、&lt;code&gt;reset_sessions!&lt;/code&gt;が過去に呼び出された&lt;code&gt;save_screenshot&lt;/code&gt;に影響を与えるようになるのか……？&lt;/p&gt;
+&lt;p&gt;と思ったが実際にはそんなことはなく、&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;前述のように&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;は二度呼ばれる。capybaraは&lt;code&gt;rails_helper.rb&lt;/code&gt;と同じ&lt;code&gt;RSpec.configure&lt;/code&gt;のコンテキストで、先にコールバックをセットしているので、&lt;code&gt;rails_helper.rb&lt;/code&gt;のコールバックよりも後に呼ばれる。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/rspec/rspec-rails/blob/v4.0.1/lib/rspec/rails/example/system_example_group.rb#L109&quot;&gt;rspec-railsの&lt;code&gt;SystemExampleGroup&lt;/code&gt;のフック&lt;/a&gt;は&lt;code&gt;$stdout&lt;/code&gt;を一時的に&lt;code&gt;StringIO&lt;/code&gt;のインスタンスに置き換えているので、&lt;code&gt;puts&lt;/code&gt;の出力が横取りされる。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;というのが理由だった。&lt;code&gt;$stdout&lt;/code&gt;の置き換えがなければ以下のように出力される。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;--- reset_sessions! ---
+--- save_screenshot ---
+--- reset_sessions! ---
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;最初の&lt;code&gt;reset_sessions!&lt;/code&gt;でブラウザがリセットされているので真っ白なスクリーンショットが撮れてしまうというだけの話だった。&lt;/p&gt;
+&lt;p&gt;わかってしまえば簡単な話だが、pry-byebugで実行を追いかけるまで見当がつかず、かなり混乱していた。&lt;/p&gt;
+&lt;p&gt;ところで、&lt;code&gt;$stdout&lt;/code&gt;が上書きされているので&lt;code&gt;binding.irb&lt;/code&gt;のREPLではコードの実行結果が飲み込まれてしまうのだけども、&lt;code&gt;binding.pry&lt;/code&gt;のREPLではコードの実行結果が正しく表示された。何か特別な対応をしているのだろうか。&lt;/p&gt;
+&lt;h2&gt;所感&lt;/h2&gt;
+&lt;p&gt;類似の話題として、テストケースの終了後に&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;が呼ばれるのを抑制したいという記事があった。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://gongo.hatenablog.com/entry/2014/09/03/212513&quot;&gt;https://gongo.hatenablog.com/entry/2014/09/03/212513&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;この記事では&lt;code&gt;Capybara.reset_sessions!&lt;/code&gt;を上書きして無効化している。既存のメソッドの上書きを避けるとしたら、フックのインスタンス変数を直接いじって削除するような方法を取るしかないのではないか。&lt;/p&gt;
+&lt;p&gt;フック的なAPIはRSpecに限らずいろいろなところで使われているけれども、「すでにセットされているコールバックの振る舞いを変える」というのが難しくなりがちで、今回のように実行順を意識した遠回りな実装が必要になったり、コールバックで呼ばれるメソッドを上書きしたりといったハックを使わなければ対処できないことが多い。&lt;/p&gt;
+&lt;p&gt;ではどうすればいいのか、というのはよくわからない。コールバックを操作するためのAPIを用意すれば多少楽になるのだろうが、操作対象のコールバックを特定するための情報が必要になる（たとえばJavaScriptの&lt;code&gt;removeEventListener&lt;/code&gt;ではコールバック関数そのものを引数に受け取る）。Rubyでは匿名のブロックでコールバックをセットすることが多いので、あまり現実的ではないように思う。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2019/08/28/redmine-trunk-docker</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2019/08/28/redmine-trunk-docker.html"/>
+    <title>RedmineのtrunkのDockerイメージを毎日自動でビルドする</title>
+    <published>2019-08-28T00:00:00+09:00</published>
+    <updated>2019-08-28T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;なんとなくやってみた。リポジトリは&lt;a href=&quot;https://github.com/vzvu3k6k/docker-library-redmine/&quot;&gt;https://github.com/vzvu3k6k/docker-library-redmine/&lt;/a&gt;にある。&lt;/p&gt;
+&lt;p&gt;Docker official imageの&lt;a href=&quot;https://github.com/docker-library/redmine&quot;&gt;https://github.com/docker-library/redmine&lt;/a&gt;をベースにしている。このリポジトリの機能のうち、今回やりたいことに関係するのは以下の2つ。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;*.template&lt;/code&gt;というのがDockerfileのテンプレートで、&lt;code&gt;update.sh&lt;/code&gt;を実行すると&lt;code&gt;Dockerfile&lt;/code&gt;が生成される。&lt;/li&gt;
+&lt;li&gt;TravisCIを使っていて、&lt;code&gt;.travis.yml&lt;/code&gt;の設定に従ってビルドしたDockerイメージに対して簡単なテストを実行している。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;&lt;code&gt;Dockerfile&lt;/code&gt;を生成するために&lt;code&gt;*.template&lt;/code&gt;と&lt;code&gt;update.sh&lt;/code&gt;を編集する&lt;/h2&gt;
+&lt;p&gt;オリジナルのリポジトリではRedmine 3.4とRedmine 4.0に対応するためにテンプレートを使っている。今回はtrunkだけに対応すればいいのでテンプレートは不要だが、4.0-stableや3.4-stableのブランチにもそのうち対応したくなるかもしれないので元の仕組みをそのまま残している。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;update.sh&lt;/code&gt;の書き換えは特に書くほどのこともない。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;*.template&lt;/code&gt;はRedmineのソースのtarballをダウンロードする処理をsvnでcheckoutする処理に置き換えた。いくつか引っかかったことがあるのでメモしておく。&lt;/p&gt;
+&lt;h3&gt;中間証明書問題&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;https://svn.redmine.org/&lt;/code&gt;は中間証明書を提供していないらしく、&lt;code&gt;svn co&lt;/code&gt;するとエラーになる。&lt;/p&gt;
+&lt;p&gt;HTTPSを諦めてHTTPを使う、証明書の検証をスキップする、証明書を自分でインストールするなどの対応が必要。今回は
+証明書をインストールすることにした。&lt;a href=&quot;https://github.com/agileware-jp/redmine-plugin-orb/pull/8#pullrequestreview-247391606&quot;&gt;agileware-jp/redmine-plugin-orb#8&lt;/a&gt;の実装内容を使わせてもらっている。&lt;/p&gt;
+&lt;p&gt;元の実装では証明書の受け渡しにprocess substitutionを使っているが、&lt;code&gt;Dockerfile&lt;/code&gt;の&lt;code&gt;RUN&lt;/code&gt;はデフォルトでは&lt;code&gt;/bin/sh&lt;/code&gt;なのでこの機能が使えなかった。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The default shell on Linux is &lt;code&gt;[&amp;quot;/bin/sh&amp;quot;, &amp;quot;-c&amp;quot;]&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://docs.docker.com/engine/reference/builder/#shell&quot;&gt;Docker Documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;参考: &lt;a href=&quot;https://stackoverflow.com/q/41354864&quot;&gt;https://stackoverflow.com/q/41354864&lt;/a&gt;&lt;/p&gt;
+&lt;h4&gt;最新のリビジョン&lt;/h4&gt;
+&lt;p&gt;「リビジョン番号を指定しないときには最新のリビジョンを取得する」という動きにしたかったが、SVNで最新のリビジョンを表すにはどうしたらいいのかわからなくて困った。&lt;/p&gt;
+&lt;p&gt;パースできないリビジョン番号を指定したときに出てくるエラーメッセージ（&lt;code&gt;Syntax error in revision argument&lt;/code&gt;）でsvnのソースをgrepして、&lt;code&gt;svn_opt_parse_revision_to_range&lt;/code&gt;→&lt;code&gt;parse_one_rev&lt;/code&gt;→&lt;code&gt;revision_from_word&lt;/code&gt;という感じで関数をたどってみて、&lt;code&gt;head&lt;/code&gt;という文字列でいけることが分かった。&lt;/p&gt;
+&lt;p&gt;あとから急に思いついて「svn revision format」でググってみたらドキュメントがあっさりでてきた。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://svnbook.red-bean.com/en/1.7/svn.tour.revs.specifiers.html&quot;&gt;http://svnbook.red-bean.com/en/1.7/svn.tour.revs.specifiers.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;よく見たら&lt;code&gt;svn help co&lt;/code&gt;でも普通に説明されていた。&lt;/p&gt;
+&lt;h2&gt;&lt;code&gt;.travis.yml&lt;/code&gt;を編集する&lt;/h2&gt;
+&lt;h3&gt;Dockerイメージのテスト&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/docker-library/official-images&quot;&gt;docker-library/official-images&lt;/a&gt;にはDockerイメージが意図通りに動くかどうかざっくりテストする仕組みがあって、&lt;a href=&quot;https://github.com/docker-library/redmine/blob/62f92a43718f9ead7f404e4584c00735a1cbbed7/.travis.yml#L25&quot;&gt;docker-library/redmineもそのテストを利用している&lt;/a&gt;。テストコードはすべてofficial-imagesリポジトリに入っていて、&lt;code&gt;~/official-images/test/run.sh&lt;/code&gt;にイメージ名を渡すとそのイメージを対象にしたテストが実行される。このとき、&lt;a href=&quot;https://github.com/docker-library/official-images/blob/af391a3a103b694b81b08e87b17d384a30f1ee44/test/run.sh#L130&quot;&gt;特に設定しなければイメージ名のネームスペースを無視してくれる&lt;/a&gt;ので、&lt;code&gt;vzvu3k6k/redmine&lt;/code&gt;というようなイメージ名にしておけば何も手を加えなくてもdocker-library/redmineのイメージと同じテストが実行される。これはとても助かった。&lt;/p&gt;
+&lt;h3&gt;フェーズ間で情報を受け渡す&lt;/h3&gt;
+&lt;p&gt;TravisCIのジョブはいくつかのフェーズに分かれている（参照: &lt;a href=&quot;https://docs.travis-ci.com/user/job-lifecycle/&quot;&gt;https://docs.travis-ci.com/user/job-lifecycle/&lt;/a&gt;）。今回はそれぞれのフェーズで以下のような処理をしている。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;before_script&lt;/code&gt;フェーズ: 最新のリビジョン番号を取得する&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;script&lt;/code&gt;フェーズ: そのリビジョン番号のコードを取得してイメージをビルドする&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;deploy&lt;/code&gt;フェーズ: ビルドしたイメージにリビジョン番号のタグをつけて公開する&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;before_script&lt;/code&gt;フェーズで定義した環境変数は&lt;code&gt;script&lt;/code&gt;フェーズからは参照できるが、&lt;code&gt;deploy&lt;/code&gt;フェーズからは参照できなかった。&lt;/p&gt;
+&lt;p&gt;フェーズごとに最新のリビジョン番号を取り直せばだいたいうまくいくが、何度もSVNサーバーにリクエストを送りたくはないし、ジョブの実行中にコミットがあるとイメージの中身とタグがずれてしまう可能性がある。&lt;/p&gt;
+&lt;p&gt;TravisCI側では特に解決策を提供していないようなので、値をファイルに書き出しておくことにした。デフォルトでは&lt;code&gt;deploy&lt;/code&gt;フェーズの前に&lt;code&gt;git stash --all&lt;/code&gt;でファイルがリセットされるので設定で無効にしておく必要がある。（参照: &lt;a href=&quot;https://docs.travis-ci.com/user/deployment#uploading-files-and-skip_cleanup&quot;&gt;https://docs.travis-ci.com/user/deployment#uploading-files-and-skip_cleanup&lt;/a&gt;）&lt;/p&gt;
+&lt;h3&gt;シェルスクリプト&lt;/h3&gt;
+&lt;p&gt;細かいところでいろいろ詰まって調べた。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;puts $stdin.read.slice(/^Revision: (\d+)$/, 1)&lt;/code&gt;相当のことをgrepでサクッと書きたい
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://unix.stackexchange.com/q/13466&quot;&gt;https://unix.stackexchange.com/q/13466&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;GNU grepなら&lt;code&gt;grep -o -P &amp;quot;^Revision: \K\d+$&amp;quot;&lt;/code&gt;で近い結果が得られる&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-o&lt;/code&gt;でマッチした箇所だけを表示&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-P&lt;/code&gt;でPCREを有効にして後読み、先読みを使って不要な箇所を読み捨てる&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;しかしデフォルトの設定ではRubyが使えるっぽいので&lt;code&gt;grep&lt;/code&gt;使う必要はなかった&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;source&lt;/code&gt;で実行したシェルスクリプトの中で&lt;code&gt;set&lt;/code&gt;を使うと呼び出し元にも影響する
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://superuser.com/q/648331/&quot;&gt;https://superuser.com/q/648331/&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;SETTING=$(set +o); something; eval &amp;quot;$SETTINGS&amp;quot;&lt;/code&gt;で設定を保存して復元できる&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;実行中のシェルスクリプトと同じディレクトリにあるシェルスクリプトを実行したい
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://stackoverflow.com/q/6659689&quot;&gt;https://stackoverflow.com/q/6659689&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;いろいろ方法はあるけど、どれも確実ではない。&lt;/li&gt;
+&lt;li&gt;今回は&lt;code&gt;$BASH_SOURCE&lt;/code&gt;を使った。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;感想など&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;普段はCircleCIを使っていて、TravisCIは軽く触ったことがある程度だった。
+&lt;ul&gt;
+&lt;li&gt;見た目はTravisCIのほうが好み。機能面では後発のCircleCIのほうが充実しているように見える。
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://circleci.com/docs/2.0/ssh-access-jobs/&quot;&gt;コンテナにSSHアクセスする機能&lt;/a&gt;とか、&lt;a href=&quot;https://circleci.com/docs/2.0/local-cli/#run-a-job-in-a-container-on-your-machine&quot;&gt;手元環境でjobを実行する機能&lt;/a&gt;とか。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;CircleCIの&lt;a href=&quot;https://circleci.com/docs/2.0/workflows/&quot;&gt;workflow&lt;/a&gt;に相当するのは&lt;a href=&quot;https://docs.travis-ci.com/user/build-stages/&quot;&gt;build stages&lt;/a&gt;だろうか。
+&lt;ul&gt;
+&lt;li&gt;処理を並行で進めたり、待ち合わせたりする制御機能。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Docker HubにpushするときにはアカウントのIDとパスワードが必要だった。
+&lt;ul&gt;
+&lt;li&gt;CircleCIのENVに設定している。&lt;/li&gt;
+&lt;li&gt;生のパスワードが漏洩するとアカウントごと乗っ取られてしまうのであまり外部に渡したくないが…&lt;/li&gt;
+&lt;li&gt;トークン的なものはあるようだが有効期間が短いのでCIには使えない。&lt;/li&gt;
+&lt;li&gt;push権限しかないbotユーザーを作るといいよという話があった。なるほど。
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://stackoverflow.com/a/41842683&quot;&gt;https://stackoverflow.com/a/41842683&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;2FAを実装してほしいという要望も前々から上がっているものの進んでいない（&lt;a href=&quot;https://github.com/docker/hub-feedback/issues/358&quot;&gt;https://github.com/docker/hub-feedback/issues/358&lt;/a&gt;）。開発リソースの問題だろうか。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Docker Hubにpushするたびにイメージのpull数が増えてる気がする。自動的にイメージを収集するbotかなにかが走っているのだろうか。&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2015/03/06/xpf-remove-use-of-uninitialized-value-in-test</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2015/03/06/xpf-remove-use-of-uninitialized-value-in-test.html"/>
+    <title>XPathFeedのテスト実行時の&quot;Use of uninitialized value $url ...&quot;を消す</title>
+    <published>2015-03-06T00:00:00+09:00</published>
+    <updated>2015-03-06T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/onishi/xpathfeed/pull/5&quot;&gt;Ensure weak references in use in HTML::TreeBuilder? by vzvu3k6k · Pull Request #5 · onishi/xpathfeed&lt;/a&gt;についての覚え書き。&lt;/p&gt;
+&lt;p&gt;t/XPathFeed.tを実行すると&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Use of uninitialized value $url in pattern match (m//) at lib/XPathFeed.pm line 91.
+Use of uninitialized value $url in concatenation (.) or string at lib/XPathFeed.pm line 91.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;という警告が表示される。これがエラーとまぎらわしいので消したかった。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-perl&quot;&gt;sub uri {
+    my $self = shift;
+    my $url = $self-&amp;gt;url;
+    $url =~ /http/ or $url = &amp;quot;http://$url&amp;quot;; # line 91
+    $self-&amp;gt;{uri} ||= URI-&amp;gt;new($url)-&amp;gt;canonical;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;問題のコードはXPathFeed::uriにあるのだが、XPathFeedのインスタンスを作ってそのまま捨てる（&lt;code&gt;carton exec -- perl -Ilib -MXPathFeed -e'XPathFeed-&amp;gt;new'&lt;/code&gt;）だけでもこの警告が出る。&lt;/p&gt;
+&lt;p&gt;しかし、インスタンスを初期化するときにuriメソッドが呼ばれているわけではなさそう。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-perl&quot;&gt;sub new {
+    my $class = shift;
+    my %args = @_==1 ? %{$_[0]} : @_;
+    return $class-&amp;gt;SUPER::new({%args});
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;親クラスの&lt;code&gt;use base qw/Class::Accessor::Fast Class::Data::Inheritable/;&lt;/code&gt;あたりが呼び出しているのかな？と思いながら、&lt;a href=&quot;http://perldoc.perl.org/functions/caller.html&quot;&gt;caller&lt;/a&gt;でuriメソッドの呼び出し元を追ってみると、実はデストラクタが原因だった。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-perl&quot;&gt;sub clean {
+    my $self = shift;
+    $self-&amp;gt;tree or return;
+    $self-&amp;gt;tree-&amp;gt;delete;
+}
+
+sub DESTROY { # これがデストラクタ
+    my $self = shift;
+    $self-&amp;gt;clean;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;XPathFeedのインスタンスがGCされるとき、&lt;code&gt;$self-&amp;gt;DESTROY&lt;/code&gt;が呼び出され、その中で&lt;code&gt;$self-&amp;gt;clean&lt;/code&gt;が実行される。ここではメモリリークを避けるため、&lt;code&gt;$self-&amp;gt;tree-&amp;gt;delete&lt;/code&gt;でHTML::TreeBuilderのインスタンスが持っているHTML要素などを明示的に破棄している。ところが、&lt;code&gt;$self-&amp;gt;tree&lt;/code&gt;は初回実行時に&lt;code&gt;$self-&amp;gt;decoded_content&lt;/code&gt;からHTML::TreeBuilderのインスタンスを遅延初期化するメソッドなので、ここで意図せずtreeが生成されてしまう。treeを生成するために&lt;code&gt;$self-&amp;gt;decoded_content&lt;/code&gt;が呼ばれ、そこから&lt;code&gt;$self-&amp;gt;http_result&lt;/code&gt;が呼ばれ、その中で&lt;code&gt;$self-&amp;gt;uri&lt;/code&gt;が呼ばれているのだった。さらにキャッシュやLWP::UserAgentなども呼び出され、ようやく生成されたtreeは次の行でバサリと切り倒される。&lt;/p&gt;
+&lt;h2&gt;解決方法&lt;/h2&gt;
+&lt;p&gt;一番簡単な解決方法は、uriメソッドを&lt;code&gt;my $url = $self-&amp;gt;url || '';&lt;/code&gt;のように書き換えることだろう。しかし、空のインスタンスを破棄するだけで大量のメソッドが無意味に実行される問題は残る。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;XPathFeed-&amp;gt;new&lt;/code&gt;に常にダミーのurlパラメータを渡すのも同様。&lt;/p&gt;
+&lt;p&gt;別の方法として、&lt;code&gt;$self-&amp;gt;tree&lt;/code&gt;で生成されたHTML::TreeBuilderのインスタンスが&lt;code&gt;$self-&amp;gt;{tree}&lt;/code&gt;に保存されるのを利用する手もある。cleanメソッドで直接&lt;code&gt;$self-&amp;gt;{tree}&lt;/code&gt;を参照してやれば、treeを削除するために生成するような無駄はなくなる。とはいえ、内部で使われることを意図した変数に直接アクセスするのは好ましくない気もする。&lt;/p&gt;
+&lt;h3&gt;弱い参照&lt;/h3&gt;
+&lt;p&gt;なぜHTML::TreeBuilder::deleteを呼ばないとメモリリークが発生するのかというと、ノードツリーが親子で循環参照しているので、参照カウント方式のGCだとオブジェクトが不要になったことが検出できないからだそうだ。&lt;/p&gt;
+&lt;p&gt;最近のPerlには弱い参照が実装されていて、Scalar::Util::weakenで指定した参照はカウントされなくなる。実はHTML::TreeBuilderが内部で使っているHTML::Elementでは、Scalar::Util::weakenが存在していれば自動的に弱い参照を使う。これなら&lt;code&gt;$self-&amp;gt;tree-&amp;gt;delete&lt;/code&gt;を呼ぶ必要はなくなる。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;use HTML::TreeBuilder 5 -weak;&lt;/code&gt;とオプションを与えてuseすると弱い参照を使うように強制できる（Scalar::Util::weakenが存在しなければエラーが出る）。これならXPathFeed::cleanやDESTROYを削除できる。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;pre&gt;&lt;code class=&quot;language-perl&quot;&gt;sub clean {
+    my $self = shift;
+    return if HTML::TreeBuilder-&amp;gt;Use_Weak_Refs || !$self-&amp;gt;tree;
+    $self-&amp;gt;tree-&amp;gt;delete;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;このように弱い参照が有効になっているか確認するコードを入れるだけで済ませることも考えたが、できればコードの量を減らしたい。どうやら弱い参照は5.8あたりから使えるようになったらしいので、この機能が使えることを前提にしてもよさそう。&lt;/p&gt;
+&lt;h4&gt;弱い参照はいつごろからサポートされているのか&lt;/h4&gt;
+&lt;p&gt;&lt;a href=&quot;http://perldoc.perl.org/perl56delta.html&quot;&gt;perl56delta&lt;/a&gt;に&lt;a href=&quot;http://perldoc.perl.org/perl56delta.html#Weak-references&quot;&gt;weak referenceが導入されたというアナウンス&lt;/a&gt;がある。当時はexperimentalな機能で、Devel::WeakRefを通じて利用することができた。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://perldoc.perl.org/perl58delta.html&quot;&gt;perl58delta&lt;/a&gt;でScalar::Utilが追加されていて、この中にweakenも入っている（&lt;a href=&quot;https://github.com/perl/perl5/commit/f4a2945e37e7fde9d94fd91ab4bd8581bde8c1ec&quot;&gt;Scalar::UtilをPerlにバンドルするコミット&lt;/a&gt;）。weakenなどの内部では&lt;code&gt;SvWEAKREF&lt;/code&gt;が定義されているかチェックしているが、5.8ではsv.hで無条件に定義されている様子で、それ以降のperldeltaにはこの機能を無効化したという記述はないので、5.8以降では常に使える状態なのではないかと思う。&lt;/p&gt;
+&lt;h4&gt;参考&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://metacpan.org/pod/HTML::TreeBuilder&quot;&gt;HTML::TreeBuilder - Parser that builds a HTML syntax tree - metacpan.org&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://metacpan.org/pod/HTML::Element&quot;&gt;HTML::Element - Class for objects that represent HTML elements - metacpan.org&lt;/a&gt;: &lt;code&gt;-weak&lt;/code&gt;についての説明。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://perldoc.perl.org/5.8.9/perlobj.html#Two-Phased-Garbage-Collection&quot;&gt;Two-Phased Garbage Collection - perlobj 5.8.9&lt;/a&gt;: perl 5.8.9では普段のGCには参照カウント方式を使い、スレッドが終了するときはマーク・アンド・スイープ方式のGCを行う。最近のバージョンではこのあたりの記述がなくなっているので、今は違う実装になっているのかもしれない。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;useのオプションの伝播&lt;/h2&gt;
+&lt;p&gt;HTML::TreeBuilderで弱い参照を強制するには&lt;code&gt;use HTML::TreeBuilder 5 -weak;&lt;/code&gt;と指定せよとドキュメントには書いてある。ところが、HTML/TreeBuilder.pmにはuseのオプションを直接チェックする処理はない。&lt;code&gt;-weak&lt;/code&gt;を実際に解釈しているのはHTML::Elementというモジュールだ。&lt;/p&gt;
+&lt;p&gt;HTML/TreeBuilder.pmの中では&lt;code&gt;use HTML::Element ();&lt;/code&gt;とuseに明示的に空リストが渡されていて、&lt;code&gt;-weak&lt;/code&gt;を引き渡している様子はない。それではどうやって値がHTML::Elementに渡されているのかというと、継承によって実現されている。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;-weak&lt;/code&gt;のようなオプションは&lt;code&gt;__PACKAGE__-&amp;gt;import()&lt;/code&gt;に渡される。HTML::TreeBuilder::importが存在しないので、&lt;code&gt;our @ISA = qw(HTML::Element HTML::Parser);&lt;/code&gt;で親クラスに設定されているHTML::Elementのimportが呼び出されるという仕組み。&lt;/p&gt;
+&lt;p&gt;ちなみに最初の&lt;code&gt;5&lt;/code&gt;というオプションはHTML::TreeBuilderのバージョンが5以上であることを保証させるオプション。これは&lt;code&gt;__PACKAGE__-&amp;gt;VERSION()&lt;/code&gt;に引数として渡されている。デフォルトではベースクラスの&lt;a href=&quot;http://perldoc.perl.org/UNIVERSAL.html&quot;&gt;UNIVERSAL::VERSION&lt;/a&gt;が呼び出され、指定されたバージョンよりクラスの&lt;code&gt;$VERSION&lt;/code&gt;が古ければ&lt;code&gt;die&lt;/code&gt;される。&lt;/p&gt;
+&lt;h3&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://perldoc.perl.org/perlobj.html#A-Class-is-Simply-a-Package&quot;&gt;perlobj - perldoc.perl.org&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://perldoc.perl.org/functions/use.html&quot;&gt;use - perldoc.perl.org&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;その他&lt;/h2&gt;
+&lt;p&gt;XPathFeedにプルリク送りまくってたらcollaboratorにしてもらえた。特にGitHubから通知とかはなくて、ある日突然&lt;a href=&quot;https://github.com/&quot;&gt;https://github.com/&lt;/a&gt;のYour repositoriesにonishi/xpathfeedという表示が追加されたという感じだった。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2015/02/21/xpathfeed-frame-encoding</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2015/02/21/xpathfeed-frame-encoding.html"/>
+    <title>XPathFeedの/frameで&lt;input value=&quot;&amp;#x2713;&quot;&gt;などを含むページが正常に表示できない問題を直した</title>
+    <published>2015-02-21T00:00:00+09:00</published>
+    <updated>2015-02-21T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;正確に書くと、HTMLのタグの属性の値に符号位置がffより大きい文字参照が含まれているページのURLをXPathFeedの&lt;code&gt;/frame?url=...&lt;/code&gt;に指定すると正常に表示できないという問題。&lt;/p&gt;
+&lt;p&gt;どのサーバーを使うかによって症状は異なる。plackup(Plack 1.0034 &lt;code&gt;carton exec -- plackup app.psgi&lt;/code&gt;)の場合、&lt;code&gt;Wide character outside byte range in response. Encoding data as UTF-8 at ./xpathfeed/local/lib/perl5/Plack/Util.pm line 96.&lt;/code&gt;というエラーが出力され、ページが文字化けする。starman(Starman 0.4011 &lt;code&gt;carton exec -- starman --preload-app --port 5000&lt;/code&gt;)では、&lt;code&gt;Wide character in syswrite at /home/vzvu3k6k/.anyenv/envs/plenv/versions/5.20.1/lib/perl5/site_perl/5.20.1/Starman/Server.pm line 561.&lt;/code&gt;というエラーが出力され、空のページが表示される。&lt;/p&gt;
+&lt;h2&gt;原因&lt;/h2&gt;
+&lt;p&gt;かいつまんで書くと、暗黙的にデコードされた文字参照のせいで文字コードのupgradeが起きて文字列が破壊され、意図せずテキスト文字列が出力されてしまうのが原因らしい。それなりに調べたのでたぶん正しいと思うけど、Perl5の文字コードまわりは複雑なので、本当に間違っていないか不安。ともかく以下に詳細を書く。&lt;/p&gt;
+&lt;p&gt;XPathFeedの/frameにスクレイピングの対象となるURLを渡すと、マウスカーソルの下にある要素を選択するXPathをサジェストする機能を埋め込んでiframe内に表示してくれる。このページを正しく表示するために、HTML::ResolveLinkというモジュールで対象ページの相対パスを絶対パスに置換している。&lt;/p&gt;
+&lt;p&gt;HTML::ResolveLinkはHTMLをパースするのにHTML::Parserというモジュールを使っている。これはHTMLのノードを深さ優先で辿りながら、ノードの内容を引数にしてハンドラを呼び出すというもので、HTML::ResolveLinkはハンドラの中で属性を適切に書き換えながらHTMLを文字列として書き出す。（参照: &lt;a href=&quot;https://metacpan.org/source/MIYAGAWA/HTML-ResolveLink-0.05/lib/HTML/ResolveLink.pm&quot;&gt;lib/HTML/ResolveLink.pm - metacpan.org&lt;/a&gt;）&lt;/p&gt;
+&lt;p&gt;HTML::Parserはデフォルトでは属性の値に含まれる文字参照をデコードする。例えば、&lt;code&gt;&amp;lt;input value=&amp;quot;&amp;amp;#x2713;&amp;quot;&amp;gt;&lt;/code&gt;のvalue属性の値は、&lt;code&gt;&amp;quot;\x{2713}&amp;quot;&lt;/code&gt;に相当する文字列に変換される（HTML::Parserのソースは確認していないが、Devel::Peekで両者を見たところ同じ値っぽかった）。これはテキスト文字列である。符号位置がffより大きいとUTF8フラグが立つ。&lt;/p&gt;
+&lt;p&gt;一方、XPathFeedからHTML::ResolveLinkに渡されるHTMLのソースは常にエンコードされている（&lt;a href=&quot;https://github.com/onishi/xpathfeed/blob/7500540a41a4c2b753acd64dc105bc08812a798d/lib/XPathFeed.pm#L145&quot;&gt;xpathfeed/XPathFeed.pm#L145&lt;/a&gt;）。つまりバイナリ文字列だ。UTF8フラグは常に落ちている。HTML::Parserは、前述の文字参照のデコードを除けば、コールバックにバイナリ文字列をそのまま渡す（&lt;code&gt;$parser-&amp;gt;utf8_mode(1)&lt;/code&gt;が設定されているときは例外）。&lt;/p&gt;
+&lt;p&gt;結果として、HTML::ResolveLinkの中でHTMLを書き出すとき、UTF8フラグが立った文字列と立っていない文字列が連結されることがある。このようなとき、Perlはフラグが立っていない文字列の文字コードをlatin-1と仮定してデコードする（これをupgradeという）ので、HTMLのソースがlatin-1以外だと文字化けしたテキスト文字列ができてしまう。連結結果の文字列のUTF8フラグは常にオンになる。&lt;/p&gt;
+&lt;p&gt;XPathFeedとapp.psgiは&lt;code&gt;XPathFeed#_resolve()&lt;/code&gt;から返されるHTML文字列がUTF-8のバイナリ文字列であることを期待して、そのまま外部に送信しようとする。plackupはデータにwide characterがあったらエラーメッセージを表示して、強制的にUTF-8としてエンコードしてからsyswriteに渡すので、文字化けしたページが表示される。starmanはデータをそのままsyswriteに渡す。データにUTF8フラグが立っていて、latin-1で表現できない文字が含まれていると、syswriteは例外を吐いて処理を終了するので、ページの内容が空になる。&lt;/p&gt;
+&lt;h3&gt;参考&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://perldoc.jp/docs/perl/5.20.1/perlunitut.pod&quot;&gt;perlunitut - Perl における Unicode のチュートリアル - perldoc.jp&lt;/a&gt;: 「テキスト文字列」と「バイナリ文字列」の定義など。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://perldoc.jp/docs/perl/5.20.1/perlunifaq.pod&quot;&gt;perlunifaq - Perl Unicode FAQ - perldoc.jp&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://perldoc.jp/docs/perl/5.20.1/perlunifaq.pod#What32if32I32dont32decode63&quot;&gt;デコードしないとどうなるの?&lt;/a&gt;では、テキスト文字列とバイナリ文字列を一緒に使うと常にupgradingするようにも取れるが、upgradingするかどうかはUTF8フラグの有無で決まる。UTF8フラグが立っている文字列は必ずテキスト文字列だが、UTF8フラグが立っていないテキスト文字列もありえる。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://gihyo.jp/dev/serial/01/perl-hackers-hub/001602&quot;&gt;第16回　Perl内部構造の深遠に迫る（2）：Perl Hackers Hub｜gihyo.jp … 技術評論社&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/dayflower/20080219/1203493616&quot;&gt;UTF8 フラグあれこれ - daily dayflower&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;対策&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;Encode::encode()&lt;/code&gt;してからHTML::ResolveLinkに渡すのをやめて、HTML::ResolveLinkの返り値を&lt;code&gt;Encode::encode()&lt;/code&gt;するように修正した。エスケープは出力の直前に行うべきという考え方を引けば、&lt;code&gt;app.psgi&lt;/code&gt;で出力する直前に&lt;code&gt;Encode::encode()&lt;/code&gt;したほうがいいような気もするが、Perlの流儀を知らないので元コードに従った。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;HTML::Parser#attr_encoded(0)&lt;/code&gt;で文字参照のデコードを無効にするのも試したが、HTML::ResolveLinkのエスケープで&lt;code&gt;&amp;amp;hearts;&lt;/code&gt;のような文字参照が&lt;code&gt;&amp;amp;amp;hearts;&lt;/code&gt;に置換されるのでうまくいかなかった。&lt;/p&gt;
+&lt;h3&gt;ついでに&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;Encode::encode()&lt;/code&gt;の第一引数をUTF-8に固定していると、metaタグでUTF-8以外の文字コードが指定されているとき文字化けしてしまう。代わりに&lt;code&gt;$xpf-&amp;gt;http_result-&amp;gt;{content_charset}&lt;/code&gt;を渡すことにした。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;&amp;lt;input value=&amp;quot;&amp;amp;#x2713;&amp;quot;&amp;gt;&lt;/code&gt;をHTML::ResolveLinkで処理すると&lt;code&gt;&amp;lt;input value=&amp;quot;✓&amp;quot;&amp;gt;&lt;/code&gt;になって、これをさらにEUC-JPなどに変換すると&lt;code&gt;&amp;lt;input value=&amp;quot;?&amp;quot;&amp;gt;&lt;/code&gt;になってしまうという問題があるのだが、/frameで属性の値が化けても大きな問題はなさそうなので対策はしていない。フィードを生成するときにはHTML::ResolveLinkを通さないので影響はない。&lt;/p&gt;
+&lt;h2&gt;プルリクエスト送った&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/onishi/xpathfeed/pull/3&quot;&gt;Fix character corruption in /frame by vzvu3k6k · Pull Request #3 · onishi/xpathfeed · GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;テストも書くべきなのか迷ったけど、HTTP::Messageのテストみたいになってしまう気がするのでとりあえず問題の修正だけした。&lt;/p&gt;
+&lt;h3&gt;ところで&lt;/h3&gt;
+&lt;p&gt;HTML::Parserはなぜ属性値以外の文字参照はデコードしないんだろう。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2015/02/13/autopagerize-ldrize-hatena-bookmark-topic</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2015/02/13/autopagerize-ldrize-hatena-bookmark-topic.html"/>
+    <title>はてなブックマークの「トピック」にAutoPagerizeとLDRizeを適用する</title>
+    <published>2015-02-13T00:00:00+09:00</published>
+    <updated>2015-02-13T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://b.hatena.ne.jp/topiclist&quot;&gt;はてなブックマーク - トピック&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://bookmark.hatenastaff.com/entry/2015/02/05/190331&quot;&gt;自然言語処理技術を用いたはてなブックマークの新機能「トピック」をベータリリースしました - はてなブックマーク開発ブログ&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;はてなブックマークで盛り上がった話題をピックアップして、関連記事を提示してくれる機能がベータリリースされた。すでに10年分のトピックがあるので、AutoPagerizeとLDRizeでテンポよく読んでいきたい。&lt;/p&gt;
+&lt;h2&gt;AutoPagerize&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;http://wedata.net/items/76901&quot;&gt;アイテム: はてなブックマーク - トピック - データベース: AutoPagerize - wedata&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;SITEINFOは追加したが、いくつかのAutoPagerize系の拡張は&lt;code&gt;http://b.hatena.ne.jp/*&lt;/code&gt;では動作しないように設定されている（&lt;a href=&quot;https://addons.mozilla.org/en-US/firefox/addon/autopagerize/&quot;&gt;Firefox版AutoPagerize&lt;/a&gt;と&lt;a href=&quot;https://github.com/Griever/userChromeJS/tree/master/uAutoPagerize&quot;&gt;uAutoPagerize&lt;/a&gt;で確認）ので、トピックリスト関連のページを無効化の対象から外すように書き換える必要がある（&lt;a href=&quot;https://github.com/vzvu3k6k/autopagerize_for_firefox/commit/2263f5941df30ea6cab0a43f1c4bbe310d088a99&quot;&gt;Firefox版AutoPagerizeの書き換え例&lt;/a&gt;）。はてなブックマークの&lt;a href=&quot;http://b.hatena.ne.jp/skozawa/&quot;&gt;ユーザーのブックマーク一覧&lt;/a&gt;には無限スクロールが実装されているから、そのうちトピック機能にも実装されるのではないか、ということでプルリクエストは送っていない。&lt;/p&gt;
+&lt;p&gt;右側の日付リストについては、&lt;a href=&quot;https://github.com/vzvu3k6k/b_hatena_topiclist-infinite_scroll.user.js/commit/8e8e8515832c7afc689cbb28875530c342b1415a&quot;&gt;継ぎ足したら日付リストも伸ばしていくというユーザースクリプトを書いてみた&lt;/a&gt;が、ページ側のスクリプトでDOMをキャッシュしているので、これだけではスクロールしてもハイライトが変化しない。継ぎ足した時に&lt;code&gt;unsafeWindow&lt;/code&gt;などを経由してキャッシュを消してやれば動きそうだが、数回継ぎ足しただけでリストが溢れるという問題もある。日付をカレンダーのように並べるとか、表示していない月は折りたたむなどという対策を考えたが、実装が面倒なわりにメリットが少ないのでそのままにしている。&lt;/p&gt;
+&lt;p&gt;「あとで読む」ボタンはそのままでは有効にならない。ユーザースクリプトなどを使って、&lt;code&gt;AutoPagerize_DOMNodeInserted&lt;/code&gt;の発火時に&lt;a href=&quot;https://github.com/vzvu3k6k/b_hatena_topiclist-expand_topic.user.js/blob/cdff45a1c707c48801ce99ff0f28f814dcb0109d/scripts/main.user.js#L60-L61&quot;&gt;b_hatena_topiclist-expand_topic.user.js/main.user.js#L60-61&lt;/a&gt;のような処理を走らせれば動くようになるはず。&lt;/p&gt;
+&lt;h2&gt;LDRize&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://wedata.net/items/76903&quot;&gt;アイテム: はてなブックマーク - エントリ一覧ページ - データベース: LDRize - wedata&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://wedata.net/items/76902&quot;&gt;アイテム: はてなブックマーク - トピック一覧ページ - データベース: LDRize - wedata&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;トピックを展開するユーザースクリプトとの連携&lt;/h3&gt;
+&lt;p&gt;省略されたタイトルとサムネイルだけではトピックの内容が分からないことがある。その場で内容を確認できると便利かもしれない、と思って&lt;a href=&quot;https://github.com/vzvu3k6k/b_hatena_topiclist-expand_topic.user.js&quot;&gt;b_hatena_topiclist-expand_topic.user.js&lt;/a&gt;というユーザースクリプトを書いた。トピックにマウスカーソルを当てると、右下にボタンが表示されて、クリックするとトピックが展開される。&lt;/p&gt;
+&lt;p&gt;LDRizeと書いたけど実際にはLDRizeではなくて&lt;a href=&quot;https://github.com/mooz/keysnail&quot;&gt;mooz/keysnail · GitHub&lt;/a&gt;の&lt;a href=&quot;https://gist.github.com/958/1369730&quot;&gt;LDRnail&lt;/a&gt;というプラグインを使っている。&lt;a href=&quot;https://raw.githubusercontent.com/mooz/keysnail/master/plugins/site-local-keymap.ks.js&quot;&gt;サイトローカル・キーマップ&lt;/a&gt;というプラグインと組み合わせると、手軽にLDRnailにキーバインドを追加するようなことができる。&lt;/p&gt;
+&lt;p&gt;以下のコードをKeySnailの設定ファイルに追加すると、LDRnailで選択中のトピックを&lt;kbd&gt;i&lt;/kbd&gt;キーで展開できるようになる。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-js&quot;&gt;local[&amp;quot;^http://b.hatena.ne.jp/topiclist&amp;quot;] = [
+  ['i', function (){
+    var open = plugins.ldrnail.currentItem.querySelector('.__expand-button');
+    if(open){
+      open.click();
+    }
+  }],
+];
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;ただ、手元の環境だと&lt;kbd&gt;i&lt;/kbd&gt;を押してから概要を開くのに数秒かかる。普通に開いてタブを切り替えながら読んだほうがいいような気がしてきた。&lt;/p&gt;
+&lt;h2&gt;SITEINFO雑感&lt;/h2&gt;
+&lt;p&gt;CSS selectorの&lt;code&gt;.class-name&lt;/code&gt;に相当するXPathは、厳密に書くと&lt;code&gt;*[contains(concat(&amp;quot; &amp;quot;, normalize-space(@class), &amp;quot; &amp;quot;), &amp;quot; class-name &amp;quot;)]&lt;/code&gt;となる（参考: &lt;a href=&quot;http://constellation.hatenablog.com/entry/20080530/1212161519&quot;&gt;SITEINFO中のnormalize-space()削除について - 枕を欹てて聴く&lt;/a&gt;）のだが、他のSITEINFOを見てみると&lt;code&gt;//a[@class='class-name']&lt;/code&gt;という感じで簡便に指定しているものが多い。厳密な書き方だと視認性が下がるし、SITEINFOファイルが肥大化するのを避けるという意味もあるのかもしれない。&lt;/p&gt;
+&lt;p&gt;トピック機能はまだベータ版なので、class属性を完全一致で指定するよりもCSSのclass selector相当の記法を使って変更に強くしたほうがいいのでは、と思ったけど、&lt;abbr title=&quot;You aren't gonna need it.&quot;&gt;YAGNI&lt;/abbr&gt;という気もする。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2015/02/01/why-array_product-does-not-return-enumerator</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2015/02/01/why-array_product-does-not-return-enumerator.html"/>
+    <title>「Effective Rubyのcatch/throwをproduct/findで書き換える」の感想</title>
+    <published>2015-02-01T00:00:00+09:00</published>
+    <updated>2015-02-01T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;http://qiita.com/jnchito/items/2ef9cda52e87b58e6bf0&quot;&gt;Effective Rubyのcatch/throwをproduct/findで書き換える - Qiita&lt;/a&gt;を読んだ。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rb&quot;&gt;match = catch(:jump) do
+  @characters.each do |character|
+    @colors.each do |color|
+      if player.valid?(character, color)
+        throw(:jump, [character, color])
+      end
+    end
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;というコードは&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rb&quot;&gt;match = @characters.product(@colors).find {|params| player.valid?(*params) }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;とリファクタリングできるという話。&lt;/p&gt;
+&lt;p&gt;&lt;q cite=&quot;http://qiita.com/jnchito/items/2ef9cda52e87b58e6bf0#comment-c2dc7ecdbf3c94591291&quot;&gt;配列が大きいようだと、product で大量の Array が作られることになるので throw-catch のコードのほうが効率的&lt;/q&gt;と&lt;a href=&quot;http://qiita.com/jnchito/items/2ef9cda52e87b58e6bf0#comment-c2dc7ecdbf3c94591291&quot;&gt;コメント&lt;/a&gt;で指摘されている。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Array#product&lt;/code&gt;や&lt;code&gt;catch&lt;/code&gt;/&lt;code&gt;throw&lt;/code&gt;を使わず、&lt;code&gt;find&lt;/code&gt;と&lt;code&gt;break&lt;/code&gt;を使って書いてみたのが以下。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rb&quot;&gt;match = @characters.find {|character|
+    valid_color = @colors.find {|color|
+        player.valid?(character, color)
+    }
+    break [character, valid_color] if valid_color
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;Array#product&lt;/code&gt;版に比べるとメモリの消費量は少ないはずだが、これだと&lt;code&gt;catch&lt;/code&gt;/&lt;code&gt;throw&lt;/code&gt;を使ったバージョンのほうが分かりやすい。&lt;/p&gt;
+&lt;h2&gt;&lt;code&gt;Array#product&lt;/code&gt;にブロックを渡す&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;Array#product&lt;/code&gt;にブロックを渡すと、組み合わせを一つごとにブロックの引数にして呼び出してくれるので、次のようにも書ける。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rb&quot;&gt;match = @characters.product(@colors){|params|
+    break params if player.valid?(*params)
+}
+
+# `break`が実行されなかったときには`match == @characters`になるので、それをチェックする必要がある。
+match = nil if match == @characters
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;CRubyの実装を見てみると、ブロックが渡されているときには組み合わせを一つ生成するごとにブロックを呼んでいるようだから、&lt;code&gt;find&lt;/code&gt;と&lt;code&gt;break&lt;/code&gt;を使ったバージョンと同じ程度の効率で動くことが期待できる。&lt;/p&gt;
+&lt;p&gt;また、&lt;code&gt;Object#to_enum&lt;/code&gt;を使うと&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&quot;language-rb&quot;&gt;match = @characters.to_enum(:product, @colors).find {|params| player.valid?(*params) }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;と書ける。見た目は&lt;code&gt;product&lt;/code&gt;/&lt;code&gt;find&lt;/code&gt;版に近い。&lt;/p&gt;
+&lt;p&gt;ただし、Rubiniusの実装では&lt;code&gt;Array#product&lt;/code&gt;はブロックの有無に関わらず、結果を一括して生成してしまう。やはり&lt;code&gt;catch&lt;/code&gt;/&lt;code&gt;throw&lt;/code&gt;を使ったほうが安全だ。&lt;/p&gt;
+&lt;h2&gt;&lt;code&gt;Array#product&lt;/code&gt;はなぜEnumeratorを返さないのか&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;Array#combination&lt;/code&gt;や&lt;code&gt;Array#permutation&lt;/code&gt;などはブロックを渡さずに呼び出すとEnumeratorを返す。なぜ&lt;code&gt;Array#product&lt;/code&gt;だけがArrayを返すのかよく分からない。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Enumerator#zip&lt;/code&gt;もEnumeratorではなくArrayを返す。self以外の要素が関わっているのが問題なんだろうか。&lt;/p&gt;
+&lt;p&gt;RubyのChangelogをgrepしてみたがよく分からない。とりあえず、rb_ary_(combination|product|permutation)が追加されたのはSat Sep 29 17:31:04 2007のことらしい。&lt;/p&gt;
+&lt;h2&gt;関連&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/m_seki/20150211#1423582051&quot;&gt;つくってみた - I like Ruby too.&lt;/a&gt;: &lt;code&gt;Array#product&lt;/code&gt;のEnumerable版、&lt;code&gt;Enumerable#product_enum&lt;/code&gt;の実装。rewindを持つEnumeratorを引数に取ってEnumeratorを返す。&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2014/04/27/better-infinite-scroll</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2014/04/27/better-infinite-scroll.html"/>
+    <title>無限スクロールの問題点と解決方法</title>
+    <published>2014-04-27T00:00:00+09:00</published>
+    <updated>2014-04-27T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;無限スクロールとは、ページの下部までスクロールすると自動的に新しい要素が追加される機能のこと。TwitterなどのSNSのタイムラインを初めとして様々なウェブサイトで使われているが、いくつかの問題点も指摘されている。&lt;/p&gt;
+&lt;p&gt;無限スクロールのよく知られた問題点と、それに対する解決方法をまとめた。&lt;/p&gt;
+&lt;h2&gt;別のページに移動してから戻ると継ぎ足しがリセットされる&lt;/h2&gt;
+&lt;p&gt;リンクがクリックされたときは常に新しいウィンドウを開くようにしたり、 &lt;a href=&quot;http://www.lokeshdhakar.com/projects/lightbox2/&quot;&gt;Lightbox&lt;/a&gt;のようなモーダルな擬似ウィンドウをページ内に開いたりすることで、ページの遷移そのものを抑制するという方法がある。&lt;/p&gt;
+&lt;p&gt;また、次の項目で紹介する「History APIでURLを書き換える」という方法を使えば、読み進んだ位置は復元される。&lt;/p&gt;
+&lt;h2&gt;permalinkが取れない&lt;/h2&gt;
+&lt;p&gt;同じページに次々と新しい内容が継ぎ足されていくので、いま自分が見ているページのURLが分からないという問題。&lt;/p&gt;
+&lt;h3&gt;History APIでURLを書き換える&lt;/h3&gt;
+&lt;p&gt;スクロール位置に応じてHistory APIでURLを書き換える。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://weheartit.com/&quot;&gt;We Heart It&lt;/a&gt;が実装している。&lt;/p&gt;
+&lt;h3&gt;リンクを追加する&lt;/h3&gt;
+&lt;p&gt;次のページを追加する際にpermalinkも追加する。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://autopagerize.net/&quot;&gt;AutoPagerize&lt;/a&gt;（任意のウェブサイトに無限スクロール機能を追加できるブラウザ拡張）はこの方式を取っている。&lt;/p&gt;
+&lt;h2&gt;ページを飛ばせない&lt;/h2&gt;
+&lt;p&gt;ページの最下部までスクロールすることでしか次のページを表示できない場合、何ページか飛ばして読んだりすることができない。&lt;/p&gt;
+&lt;h3&gt;ナビゲーションを追加する&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&quot;http://weheartit.com/&quot;&gt;We Heart It&lt;/a&gt;ではページの右下にこのようなナビゲーションを設けている。テキストボックスにページ番号を入力してEnterを押すとそのページに移動できる。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/memo/img/better-infinite-scroll-navigation.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;h2&gt;メモリーが食い潰される&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;/memo/2014/04/26/tumblr-ghostlist.html&quot;&gt;Tumblrの省メモリーな無限スクロール&lt;/a&gt;を参照。&lt;/p&gt;
+&lt;h2&gt;参考&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://gihyo.jp/dev/serial/01/front-end_web/000202?page=2&quot;&gt;第2回　スクロールとページングのUIを考える（2）：フロントエンドWeb戦略室｜gihyo.jp … 技術評論社&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://xkcd.com/1309/&quot;&gt;xkcd: Infinite Scrolling&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2014/04/26/tumblr-ghostlist</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2014/04/26/tumblr-ghostlist.html"/>
+    <title>Tumblrの省メモリーな無限スクロール</title>
+    <published>2014-04-26T00:00:00+09:00</published>
+    <updated>2014-04-26T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;http://netyougo.com/webservice/13825.html&quot;&gt;無限スクロール&lt;/a&gt;またはauto pagingと呼ばれるUIには、読み終えたコンテンツがどんどん画面の上のほうに溜まっていってメモリーを食い潰すという問題がある。&lt;/p&gt;
+&lt;p&gt;なかでもTumblrは画像などのコンテンツが多いため、ダッシュボードダイバーたちは&lt;a href=&quot;http://joodle.tumblr.com/post/14352059524/supertumblr&quot;&gt;無限Tumblrユーザースクリプト&lt;/a&gt;などのユーザースクリプトをインストールして、読み終えたコンテンツを定期的にページ上から自動削除するといった対策を講じていた。&lt;/p&gt;
+&lt;p&gt;ところが最近のTumblrのダッシュボードでは、ポストが画面外に出るとその中の要素が一時的にページから削除され、画面内に表示されると要素が再度復元されるようになっている。どうやらこれによって無限スクロールによるメモリーの圧迫が抑えられているらしい。&lt;/p&gt;
+&lt;p&gt;関連するコードは&lt;a href=&quot;https://secure.assets.tumblr.com/assets/scripts/dashboard.js&quot;&gt;https://secure.assets.tumblr.com/assets/scripts/dashboard.js&lt;/a&gt;の&lt;code&gt;/*! scripts/ghostlist.js */&lt;/code&gt;や&lt;code&gt;/*! scripts/fast_dashboard.js */&lt;/code&gt;の付近にある。具体的には、表示領域から大きく外れたポストの子要素に対して&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;imgのsrcには一時的にダミーのgif画像を入れる&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;jQuery.browser.mozilla&lt;/code&gt;が真なら、DOMノードをクロージャー内の変数に保持してページ上からは削除する。偽なら&lt;code&gt;node.style.display = &amp;quot;none&amp;quot;&lt;/code&gt;で非表示にする。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;という処理をしている。表示領域に入ったらノードが復元される。&lt;code&gt;jQuery.browser.mozilla&lt;/code&gt;が真の場合にはaudioやvideoのポストには処理が行われない。これはスクロールすると動画や音楽が勝手に停止したり、再生位置が失われたりするのを防ぐためだと思う。そのほかに一時的に退避させたbackground-image属性を復元する関数もあったが、属性を退避させるコードはどこにあるのか分からなかった。&lt;/p&gt;
+&lt;p&gt;ノードを完全に消してしまうよりも賢い解決策だと思うが、読み終わったポストをページ内検索で探すことができなくなるのがちょっと気になる。&lt;/p&gt;
+&lt;p&gt;実装面では、ノードを隠す関数の返り値が自分の行った処理を復元する関数になっているのが面白い。ノードをそのまま返すのではなくfunctionで包むぶん、少しだけメモリーを余分に使いそうな気がする。その一方、クロージャーに内包される不要な変数にはこまめにnullを代入してメモリーの浪費を抑えている。&lt;/p&gt;
+&lt;p&gt;この機能はghostlistという名前で実装されているが、一般的な名称ではないらしく、“infinite scroll ghostlist”や”auto paging ghostlist”でググってみても、&lt;a href=&quot;https://github.com/atesh/ghostlist/&quot;&gt;atesh/ghostlist · GitHub&lt;/a&gt;ぐらいしか見つからなかった。&lt;/p&gt;
+&lt;h2&gt;2番目の処理について&lt;/h2&gt;
+&lt;p&gt;2番目の処理は本当に効果があるのか疑問だったので、Chromeのdevtoolのtimelineを使ってメモリーの使用量を確認した。&lt;/p&gt;
+&lt;p&gt;ただし、&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;display noneするとRenderTreeから要素が消えるからその分はメモリ減るかな。メモリ使用量をどうやって測っているのかきになる。V8ヒープ領域のみ見ているように見える。&lt;/p&gt;
+  &lt;footer&gt;
+    — &lt;a href=&quot;http://b.hatena.ne.jp/nyaxt/20140613#bookmark-199467470&quot;&gt;b:id:nyaxt:20140613&lt;/a&gt;
+  &lt;/footer&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;とのことで、この方法では正しくメモリーの使用量が測れていないらしい。&lt;/p&gt;
+&lt;h3&gt;&lt;code&gt;display = &amp;quot;none&amp;quot;&lt;/code&gt;方式&lt;/h3&gt;
+&lt;p&gt;GCを実行したあと、&lt;code&gt;document.body.style.display = &amp;quot;none&amp;quot;&lt;/code&gt;や&lt;code&gt;Array.prototype.forEach.call(document.body.children, function(i){i.style.display = &amp;quot;none&amp;quot;})&lt;/code&gt;などを実行してみたが、特に変化がない気がする。&lt;/p&gt;
+&lt;h3&gt;ノードを変数で保持してページ上から削除する方式&lt;/h3&gt;
+&lt;p&gt;Firefoxで検証するべきだが、とりあえずChromeを使って調べた。&lt;/p&gt;
+&lt;p&gt;適当なページを開いて、まず&lt;code&gt;Array.prototype.slice.call(document.querySelectorAll('img'), 0).forEach(function(i){i.remove()})&lt;/code&gt;で画像を消し（1に相当）、GCを実行する。それから&lt;code&gt;a = Array.prototype.slice.call(document.body.children, 0).map(function(i){i.remove(); return i})&lt;/code&gt;でbodyの子要素を退避（2に相当）。GCを実行した直後と子要素を退避させた後のメモリーの使用量の差を確かめる。&lt;/p&gt;
+&lt;dl&gt;
+  &lt;dt&gt;&lt;a href=&quot;http://www.nicovideo.jp/&quot;&gt;http://www.nicovideo.jp/&lt;/a&gt;&lt;/dt&gt;
+  &lt;dd&gt;&lt;img src=&quot;/memo/img/ghostlist_nicovideo.png&quot;&gt;&lt;br&gt;子要素を退避させた直後にはメモリーの使用量が増加しているが、その後しばらくすると退避前よりも使用量が減少している。&lt;/dd&gt;
+  &lt;dt&gt;&lt;a href=&quot;http://www.asahi.com/&quot;&gt;http://www.asahi.com/&lt;/a&gt;&lt;/dt&gt;
+  &lt;dd&gt;&lt;img src=&quot;/memo/img/ghostlist_asahi.png&quot;&gt;&lt;br&gt;同上。&lt;/dd&gt;
+  &lt;dt&gt;&lt;a href=&quot;https://www.google.co.jp/search?q=dom+memory&amp;amp;num=100&quot;&gt;https://www.google.co.jp/search?q=dom+memory&amp;num=100&lt;/a&gt;&lt;/dt&gt;
+  &lt;dd&gt;何もしていなくてもメモリーの使用量のグラフがきれいなノコギリ波を描く。裏で走っているタイマーが大量にオブジェクトを生成していて、定期的にGCが行われているのではないかと思う。画像を消しても子要素を退避しても、ほとんど変化が見られない。むしろ微妙に使用量が増える。&lt;/dd&gt;
+  &lt;dt&gt;&lt;a href=&quot;http://jsfiddle.net/vzvu3k6k/fQce4/&quot;&gt;http://jsfiddle.net/vzvu3k6k/fQce4/&lt;/a&gt;&lt;/dt&gt;
+  &lt;dd&gt;効果なし。微妙に使用量が増える。&lt;/dd&gt;
+&lt;/dl&gt;
+&lt;p&gt;グラフィカルなページではメモリーの使用量を抑える効果が見られるが、テキスト主体のシンプルなページでは意味がないようだ。&lt;/p&gt;
+&lt;h2&gt;関連&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://xkit-extension.tumblr.com/post/61016195061/xkit-dashboardgl&quot;&gt;XKit - XKit DashboardGL&lt;/a&gt; - 2013/09/12の記事。1週間ほど前に、画像を隠すことでスクロールを高速化する機能がTumblrに実装されたと報告している。当時はDashboardGLと呼ばれていたようだ。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://dannysu.com/2012/07/07/infinite-scroll-memory-optimization/&quot;&gt;Infinite Scroll Memory Optimization&lt;/a&gt; - 表示領域外の要素を消すというアプローチを取った例。無限スクロールで追加される要素が画像だけなので、画面上からノードを消してJavaScriptの変数として保持するということはしていない。コメント欄に&lt;a href=&quot;https://github.com/dannysu/eol-infinite-scroll&quot;&gt;ソースへのリンク&lt;/a&gt;がある。
+&lt;ul&gt;
+&lt;li&gt;ちなみにGoogleの画像検索でも、画面外に出た一部のimg要素のsrc属性を一時的に消しておいて、画面に表示されたらsrcを戻すということをしている。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://let.hatelabo.jp/vzvu3k6k/let/hLHX5ZrPpLVS&quot;&gt;Autopagerize: Delete old pages - Hatena::Let&lt;/a&gt; - Autopagerizeで挿入されたページを最後のもの以外全部消すブックマークレット&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://gist.github.com/vzvu3k6k/11295076&quot;&gt;Tumblr: Empty trails on dashboard&lt;/a&gt;というuserscriptを書いててGhostListの存在に気づいた。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://vzvu3k6k.tk/memo/2014/04/27/better-infinite-scroll.html&quot;&gt;無限スクロールの問題点と解決方法 - 記録&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2014/03/02/extensive-lightweight-markup-languages</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2014/03/02/extensive-lightweight-markup-languages.html"/>
+    <title>軽量マークアップ言語の拡張</title>
+    <published>2014-03-02T00:00:00+09:00</published>
+    <updated>2014-03-02T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;世間には&lt;a href=&quot;http://www.methods.co.nz/asciidoc/&quot;&gt;AsciiDoc&lt;/a&gt;, &lt;a href=&quot;http://docutils.sourceforge.net/rst.html&quot;&gt;reStructuredText&lt;/a&gt;, &lt;a href=&quot;http://daringfireball.net/projects/markdown/&quot;&gt;markdown&lt;/a&gt;といった多種多様な軽量マークアップ言語が存在する。頭ひとつ抜けた感のあるmarkdownの中でも、&lt;a href=&quot;http://michelf.ca/projects/php-markdown/extra/&quot;&gt;Markdown Extra&lt;/a&gt;, &lt;a href=&quot;http://fletcherpenney.net/multimarkdown/&quot;&gt;MultiMarkdown&lt;/a&gt;, &lt;a href=&quot;https://help.github.com/articles/github-flavored-markdown&quot;&gt;GitHub Flavored Markdown&lt;/a&gt;などの亜種変種がひしめきあっている。&lt;/p&gt;
+&lt;p&gt;あらゆるニーズを満たす軽量マークアップ言語は作りようがないし、それぞれのアプリケーション固有の機能が必要になることもある。たとえばmention機能（&lt;code&gt;@username&lt;/code&gt;と書いたらユーザーページにリンクされるようにして、言及されたユーザーには通知を出す）とか。&lt;/p&gt;
+&lt;p&gt;既存のマークアップ言語に拡張機能を追加するのはそれほど容易ではない。正規表現などで適当に置換してしまうと、他の機能と衝突して予期しない結果を生むことがある。たとえば前述のmention機能を実装するとき、&lt;code&gt;source.gsub(/@(\w+)/, '&amp;lt;a href=&amp;quot;/users/\1&amp;quot;&amp;gt;@\1&amp;lt;/a&amp;gt;')&lt;/code&gt;などとしてしまうと、&lt;code&gt;[email](mailto:admin@example.com)&lt;/code&gt;や&lt;code&gt;ここで`@source`というインスタンス変数が…&lt;/code&gt;といったテキストにも反応してしまい、ユーザーの期待とは異なる出力になる。&lt;/p&gt;
+&lt;p&gt;衝突を避けるためには、コードブロックやリンクなどの内部では置換しないといった対応が必要になる。しかし、パーサー本体に手を加えるとなると、自分の加えた変更が上流にマージされない場合にはフォーク版をメンテナンスすることになり、コストがかさむ。とはいえ、markdownの構文を独自にパースするのも同様に手間が掛かる。&lt;/p&gt;
+&lt;p&gt;以下で軽量マークアップ言語をさまざまなレイヤーで拡張する方法をいくつか紹介する。&lt;/p&gt;
+&lt;h2&gt;パーサーのフック機能など&lt;/h2&gt;
+&lt;p&gt;特定の要素をパースしたときの処理をフックして変更する機能を備えたり、ユーザーが構文木を操作できるようにしているパーサーもある。&lt;/p&gt;
+&lt;p&gt;たとえばRuby用のmarkdownライブラリ&lt;a href=&quot;https://github.com/vmg/redcarpet&quot;&gt;redcarpet&lt;/a&gt;はフック機能を持っている。&lt;/p&gt;
+&lt;h2&gt;pandoc –filter&lt;/h2&gt;
+&lt;p&gt;Haskell製のマークアップ言語変換ツールであるpandocには、JSONで出力した抽象構文木を外部のプログラムを使って変換する機能がある。外部のプログラムは任意の言語で記述できる。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://johnmacfarlane.net/pandoc/scripting.html&quot;&gt;Pandoc - Scripting with pandoc&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://efcl.info/2014/0301/res3692/&quot;&gt;pandocでMarkdownを拡張しコードをインポート出来るfilterを書く | Web scratch&lt;/a&gt; - CodeBlocks内に&lt;code&gt;$import(src/example.js)&lt;/code&gt;と書くと&lt;code&gt;src/example.js&lt;/code&gt;の内容が展開されるフィルターをJavaScript(node.js)で記述した例。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;html-pipeline&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/jch/html-pipeline&quot;&gt;html-pipeline&lt;/a&gt;はHTML（NokogiriのDocument）を変換する単機能のフィルターを繋げて文書を加工していくrubygem。&lt;code&gt;pandoc --filter&lt;/code&gt;のASTがJSONではなくHTMLになったものと思えばよい。&lt;/p&gt;
+&lt;p&gt;前述のmention機能は&lt;a href=&quot;https://github.com/jch/html-pipeline/blob/master/lib/html/pipeline/%40mention_filter.rb&quot;&gt;html-pipeline/lib/html/pipeline/@mention_filter.rb&lt;/a&gt;として同梱されている。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/increments/qiita-markdown&quot;&gt;increments/qiita-markdown&lt;/a&gt;: Qiitaのmarkdown拡張。html-pipelineを利用している。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;reStrucuredTextの拡張可能な構文&lt;/h2&gt;
+&lt;p&gt;reStrucuredText(reST)はPythonコミュニティに出自を持つマークアップ言語。Javaに対するJavaDoc、Rubyに対するRDocのPython版のような位置付け。markdownより多機能なので&lt;a href=&quot;http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html&quot;&gt;仕様&lt;/a&gt;は割と大きめ。&lt;/p&gt;
+&lt;p&gt;directiveとroleという拡張性のある構文が用意されている。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;divectives
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#directives&quot;&gt;Directives&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://docutils.sourceforge.net/docs/ref/rst/directives.html&quot;&gt;reStructuredText Directives&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://docutils.sourceforge.net/docs/howto/rst-directives.html&quot;&gt;Creating reStructuredText Directives&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;roles
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#interpreted-text&quot;&gt;Interpreted Text&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://docutils.sourceforge.net/docs/ref/rst/roles.html&quot;&gt;reStructuredText Interpreted Text Roles&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://docutils.sourceforge.net/docs/howto/rst-roles.html&quot;&gt;Creating reStructuredText Interpreted Text Roles&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;前述のmention機能をreSTの枠組みの中で表現するとしたら、roleを使って&lt;code&gt;:at:`username`&lt;/code&gt;という感じで書くのではないかと思う。ちょっとまどろっこしい。&lt;/p&gt;
+&lt;h2&gt;所感&lt;/h2&gt;
+&lt;p&gt;拡張されたmarkdownの仕様とreSTの仕様は結構重複している。「reSTとか仕様大きすぎるよね、markdownぐらいシンプルなのがいいよね」という感じで普及したあと、「大規模な文書もmarkdownで書きたい、機能が足りないからどんどん拡張しよう！」と頑張ったらreSTみたいなものがいくつも出来てしまったという感じなのかもしれない。&lt;/p&gt;
+&lt;p&gt;直接markdownに&lt;a href=&quot;http://qiita.com/Qiita/items/c686397e4a0f4f11683d#%E6%95%B0%E5%BC%8F%E3%81%AE%E6%8C%BF%E5%85%A5&quot;&gt;数式記法を追加&lt;/a&gt;したりするより、プレーンなmarkdownにreSTの構文を部分的に導入したほうがいいんじゃないかという気もする。&lt;a href=&quot;http://docutils.sourceforge.net/FAQ.html#how-can-i-include-mathematical-equations-in-documents&quot;&gt;reSTはdirectiveとroleで数式を記述できる&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;HTMLの出力が得られればOKというケースでは、html-pipelineのようにHTMLに落としてからDOMをいじるのが手軽で現実的だと思う。ただし既存の構文を拡張するとなるとHTMLに変換してからではうまくいかないこともあるはずで、そういう場合にはパーサーをフックしたり、拡張した構文を自分で部分的にパースしたりということになる。&lt;/p&gt;
+&lt;h2&gt;元ネタとか&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://efcl.info/2014/0301/res3692/&quot;&gt;pandocでMarkdownを拡張しコードをインポート出来るfilterを書く | Web scratch&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://twitter.com/r7kamura/status/432422287845777408&quot;&gt;「Markdown Parser拡張するよりPipeline風に処理していく方が筋良さそう」&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://hail2u.net/blog/software/markdown-etc.html&quot;&gt;Markdownなど - Weblog - Hail2u.net&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2014/01/30/github-robots-txt</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2014/01/30/github-robots-txt.html"/>
+    <title>https://github.com/robots.txt</title>
+    <published>2014-01-30T00:00:00+09:00</published>
+    <updated>2014-01-30T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;冒頭に&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# If you would like to crawl GitHub contact us at support@github.com.
+# We also provide an extensive API: http://developer.github.com/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;と人間向けのメッセージがある。&lt;/p&gt;
+&lt;p&gt;ボットは基本的に&lt;a href=&quot;https://github.com/humans.txt&quot;&gt;/humans.txt&lt;/a&gt;にしかアクセスできないことになっている。主だったサーチエンジンのクローラは別扱いになっているが、サーバーの負担を避けるためなのか、かなり詳細にDisallowが設定されている。User-Agentごとに同じAllowとDisallowの設定が繰り返されていてムズムズする。robots.txtがあまり複雑なフォーマットをサポートするとパーサーを書くのが大変だろうから、仕方がないのだろうか。&lt;/p&gt;
+&lt;p&gt;目を引いたのは&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Disallow: /ekansa/Open-Context-Data
+Disallow: /ekansa/opencontext-*
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;という部分。個人のリポジトリがDisallowに指定されている。&lt;a href=&quot;https://github.com/ekansa/Open-Context-Data&quot;&gt;ekansa/Open-Context-Data · GitHub&lt;/a&gt;のREADMEによると、このリポジトリには総計3GB以上のXMLファイルが含まれていて、GitHubに変更をpushしようとするとHTTP 500 range errorが返ってきてしまうなどと書かれている。あまりにサイズが大きすぎるのでクロールが禁止されてしまったらしい。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2014/01/06/jekyll-git-log</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2014/01/06/jekyll-git-log.html"/>
+    <title>Jekyllに更新履歴を表示する</title>
+    <published>2014-01-06T00:00:00+09:00</published>
+    <updated>2014-01-06T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://tech.nitoyon.com/ja/blog/2012/09/20/moved-completed/&quot;&gt;俺の最強ブログ システムが火を噴くぜ - てっく煮ブログ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://blog.ruedap.com/2013/11/11/github-flow-blog&quot;&gt;Pull RequestとCIを使ったGitHub Flowなブログ環境を作ってみた - アインシュタインの電話番号&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;ブログの記事を黙って修正するのは不誠実なので、修正箇所や修正日時を明示するべきだという考え方がある。しかし、修正が度重なると打ち消し線や「○年○月○日追記:」などが錯綜して読みづらい。記事をGitで管理してGitHubで公開しているのだから、それを使って更新履歴を表示すればいいのではないか。&lt;/p&gt;
+&lt;p&gt;上記2つはGitHubのHistoryへのリンクを貼るというアプローチだが、ここでは&lt;a href=&quot;http://ssig33.com/text/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%B3%E3%83%84%E3%81%AB%E5%B1%A5%E6%AD%B4%E8%A1%A8%E7%A4%BA%E3%81%99%E3%82%8B%E4%BD%9C%E3%81%A3%E3%81%9F&quot;&gt;ssig33.com - コンテンツに履歴表示するもの作った&lt;/a&gt;のような形式でページ内に更新履歴を表示してみる。&lt;/p&gt;
+&lt;p&gt;JavaScriptから&lt;a href=&quot;http://developer.github.com/v3/repos/commits/&quot;&gt;GitHubのAPI&lt;/a&gt;を叩けばファイルの更新履歴は取れるんだけど、&lt;a href=&quot;http://developer.github.com/v3/#rate-limiting&quot;&gt;認証していないと1時間あたり60回までしかコールできない&lt;/a&gt;し、要素が動的に追加されるとなんとなく落ち着かない感じがする。Jekyllでページを生成するときに更新履歴を書きだすことにした。Gitの操作には&lt;a href=&quot;https://rubygems.org/gems/grit&quot;&gt;grit&lt;/a&gt;を使っている。&lt;/p&gt;
+&lt;p&gt;「マークアップを変えた」みたいな本質的ではない変更まで履歴に表示されるのが気にならなくもない。更新履歴に出したくないコミットのメッセージには&lt;code&gt;[minorfix]&lt;/code&gt;という文字列を入れる、みたいなルールを決めるといいかもしれない。&lt;/p&gt;
+&lt;p&gt;ところで、Gitのコミットログは改変できるし、GitHub上のリポジトリも&lt;code&gt;git push -f&lt;/code&gt;で上書きできるので、「この間まで○○という記述があったのに、いつの間にか消えている。こっそり書き換えたに違いない」と言われると反証するのが難しい気がする。この点については更新履歴を保存してない大多数の他のブログサービスと変わりがない。&lt;/p&gt;
+&lt;h2&gt;使い方&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/vzvu3k6k/vzvu3k6k.github.com/tree/source/_plugins/git_log.rb&quot;&gt;_plugins/git_log.rb&lt;/a&gt;をコピーして、ソース内のURLを修正する。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/vzvu3k6k/vzvu3k6k.github.com/tree/source/_layouts/post.html&quot;&gt;_layout/post.html&lt;/a&gt;のように、更新履歴を表示したいページに&lt;code&gt;{% git_log %}&lt;/code&gt;を挿入する。&lt;/li&gt;
+&lt;/ol&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2013/11/23/happy-mergings-about-middleman-blog</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2013/11/23/happy-mergings-about-middleman-blog.html"/>
+    <title>happy mergings about middleman-blog</title>
+    <published>2013-11-23T00:00:00+09:00</published>
+    <updated>2013-11-23T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;middleman-blogに関連するいくつかのプルリクを送ったという話。ちょっとした問題を解決しようとしたら予想外にいろいろと引っかかったので覚え書きをしておく。実用的な情報はあまりない。&lt;/p&gt;
+&lt;h2&gt;フィードが見つからない&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;http://r7kamura.github.io/&quot;&gt;r7kamura blog&lt;/a&gt;をフィードリーダーに登録しようとしたが、フィードが見つからなかった。&lt;/p&gt;
+&lt;p&gt;このサイトは&lt;a href=&quot;http://r7kamura.github.io/2013/11/10/hello-world.html&quot;&gt;Middlemanを使って生成していて、GitHub Pagesを使って公開している&lt;/a&gt;。Middlemanを利用したブログサイトで、フィードは用意してしてもリンクを貼り忘れるというケースは時々あるようで、以前にも&lt;a href=&quot;https://github.com/f440/f440.github.com/pull/1&quot;&gt;オートディスカバリーを追加するプルリク&lt;/a&gt;を送ったことがあった。GitHubのリポジトリをざっと眺めてみると、&lt;code&gt;/feed.xml&lt;/code&gt;があるのが確認できた。よかったよかった。&lt;/p&gt;
+&lt;h2&gt;フィードが壊れている&lt;/h2&gt;
+&lt;p&gt;ところが、&lt;code&gt;http://r7kamura.github.io/feed.xml&lt;/code&gt;にアクセスしてみると、フィードのタイトルが”Blog Name”になっていて、何かおかしい。よく見ると記事のURLのホスト名も&lt;code&gt;http://blog.url.com/&lt;/code&gt;になっている。フィードの設定がデフォルトのままになっているらしい。これでは読者である自分が困る、ということで&lt;a href=&quot;https://github.com/r7kamura/r7kamura.github.io/commit/de4387d8e20b55dd1e95063f01b3baae953e3583&quot;&gt;feed.xmlを修正するコミット&lt;/a&gt;をしてプルリクを出すことにした。&lt;/p&gt;
+&lt;p&gt;上記のコミットを見てもらえば分かるように、&lt;code&gt;feed.xml&lt;/code&gt;の実体はただのテンプレートだから簡単に書き換えることができる。ただ、&lt;code&gt;site_url&lt;/code&gt;という変数にホスト名を入れるという仕組みが気になった。これではブログのホストが変わるたびにフィードのテンプレートを書き換えないといけない。ホスト名抜きのURL（&lt;code&gt;http://example.com/foo&lt;/code&gt;ではなく&lt;code&gt;/foo&lt;/code&gt;と指定するようなURL）ではいけないのだろうかと思って調べてみたが、Atomの&lt;code&gt;entry&lt;/code&gt;要素の&lt;code&gt;id&lt;/code&gt;プロパティは省略不可で、内容は完全なURLでなければいけないと定められているのでどうしようもない（参照：&lt;a href=&quot;http://tools.ietf.org/html/rfc4287&quot;&gt;RFC 4287 - The Atom Syndication Format&lt;/a&gt;, &lt;a href=&quot;https://github.com/middleman/middleman-blog/pull/130&quot;&gt;Make feed.xml entry URLs absolute by rmm5t · Pull Request #130 · middleman/middleman-blog&lt;/a&gt;）。とりあえず、サイト名や著者名などが&lt;code&gt;config.rb&lt;/code&gt;で定義されていたので、ドメイン名もそちらに書くように変更しておいた。&lt;/p&gt;
+&lt;h2&gt;オートディスカバリーを追加する&lt;/h2&gt;
+&lt;p&gt;ついでにオートディスカバリーも追加するプルリクを書こうとしたのだが、&lt;q cite=&quot;http://r7kamura.github.io/2013/11/10/hello-world.html&quot;&gt;Middlemanにはブログを作るための拡張機能があるので、これを使えば簡単に雛形を生成できる&lt;/q&gt;という一文が気になった。middleman-blogの雛形を確認してみると、&lt;code&gt;feed.xml&lt;/code&gt;はあったが、オートディスカバリーはなかった。&lt;/p&gt;
+&lt;p&gt;そのまま&lt;code&gt;/feed.xml&lt;/code&gt;とURLを指定するよりスマートなやり方があるのではないかと思って、Sitemapとか&lt;code&gt;asset_path&lt;/code&gt;メソッドの実装とかをいろいろ調べた結果、結局URLを直接書くのがよさそうだということになった。pryでメソッドを呼び出したり変数を確認したりしつつ&lt;code&gt;show-method&lt;/code&gt;でメソッドのコードを確認していくのが楽でよかった。&lt;/p&gt;
+&lt;h2&gt;Middlemanが壊れた？&lt;/h2&gt;
+&lt;p&gt;Middlemanをサーバーモードで動かしているとき、&lt;code&gt;http://0.0.0.0:4567/__middleman/&lt;/code&gt;にアクセスするとSitemapや設定がきれいに表示されて便利なのだが、気がついたらSitemapや設定一覧にアクセスできなくなってしまった。スタイルシートもなぜか当たっていない。設定を変更しても、これまでのコミットをリバートしても、新しいテンプレートを作っても動かない。関連しそうなGemを入れなおしてみるが改善されない。&lt;/p&gt;
+&lt;p&gt;一時間以上悩んだ気がするけど、原因は単純で、&lt;code&gt;http://0.0.0.0:4567/__middleman&lt;/code&gt;ではなく&lt;code&gt;http://0.0.0.0:4567/__middleman/&lt;/code&gt;を開かないといけないのだった。末尾の&lt;code&gt;/&lt;/code&gt;が抜けていてもそのままページは表示されるのだが、ページ内のリソースやリンクはすべて相対URLで指定されていたので、たとえば本来なら&lt;code&gt;/__middleman/config&lt;/code&gt;を読み込むべきところで&lt;code&gt;/config&lt;/code&gt;を読み込んでしまう。&lt;/p&gt;
+&lt;h2&gt;テストに失敗&lt;/h2&gt;
+&lt;p&gt;気を取り直してmiddleman-blogのほうに&lt;a href=&quot;https://github.com/middleman/middleman-blog/commit/f81fc5f2b27826ed91d2885d5a1abde833798984&quot;&gt;Add autodiscovery of feed.xml to layout.erb&lt;/a&gt;という変更を入れてから、念のため&lt;code&gt;bundle exec rake test&lt;/code&gt;でテストを実行してみるとなぜか失敗した。調べてみると、もともとmiddlemanのほうに一時的にバグがあったらしい。以下のプルリクとコミットを参照。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/middleman/middleman/pull/1072&quot;&gt;add the missing file back for the automatic_alt_tag feature by stevenosloan · Pull Request #1072 · middleman/middleman · GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/middleman/middleman/commit/95c0fe60accc2bc5a8e4d559e0263da977ddbcb2&quot;&gt;whoops, bad rename · 95c0fe6 · middleman/middleman&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;必要なファイルをうっかり消していたので&lt;code&gt;require&lt;/code&gt;でエラーが出たという単純なバグ。上記のコミットによって修正されている。&lt;/p&gt;
+&lt;h2&gt;&lt;code&gt;bundle install&lt;/code&gt;に失敗&lt;/h2&gt;
+&lt;p&gt;middlemanのバグを手元で修正してテストを走らせるべく&lt;code&gt;bundle install&lt;/code&gt;を実行してみるとdebuggerというgemのインストールに失敗した。ruby2.1.0-preview1で実行していたのだが、「2.1は対応していないバージョンです」という感じのメッセージが出てインストールが強制的に終了してしまう。そもそもプルリクを出すときにpreview版を使っていたのがよくなかった。&lt;/p&gt;
+&lt;p&gt;rbenvで2.0系のリリース版を入れる。gemをインストールしなおすのが面倒なのでとりあえず2.1.0-preview1の&lt;code&gt;gems&lt;/code&gt;にシンボリックリンクを貼って動かしてみたが、確か&lt;a href=&quot;http://rubygems.org/gems/ffi&quot;&gt;ffi&lt;/a&gt;が「なんとかかんとか.soファイルが見つからないです」という感じのエラーを出したのでくじけて寝た。&lt;/p&gt;
+&lt;h2&gt;プルリクを送る&lt;/h2&gt;
+&lt;p&gt;当初の目的からずいぶん離れてしまったので、とにかくfeed.xmlを修正するプルリクを送った。descriptionを書き足すために編集画面を開こうとしたらすでに&lt;a href=&quot;https://github.com/r7kamura/r7kamura.github.io/pull/1&quot;&gt;マージ&lt;/a&gt;されていて、その後もいくつかプルリクを送ったら即座にマージされるという感じでテンションが上がったので、&lt;a href=&quot;https://github.com/middleman/middleman-blog/&quot;&gt;middleman/middleman-blog&lt;/a&gt;にもエイヤッと&lt;a href=&quot;https://github.com/middleman/middleman-blog/pull/173&quot;&gt;Add autodiscovery of feed.xml to layout.erb&lt;/a&gt;を送ったら、こちらもさくっとマージしてもらえた。&lt;/p&gt;
+&lt;h2&gt;その後&lt;/h2&gt;
+&lt;p&gt;フィードリーダーを開いたら&lt;a href=&quot;http://r7kamura.github.io/2013/11/15/happy-pull-request.html&quot;&gt;happyな記事&lt;/a&gt;が流れてきた。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2013/11/01/grep-ruby-token</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2013/11/01/grep-ruby-token.html"/>
+    <title>grep-ruby-token</title>
+    <published>2013-11-01T00:00:00+09:00</published>
+    <updated>2013-11-01T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/vzvu3k6k/grep-ruby-token/&quot;&gt;vzvu3k6k/grep-ruby-token&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://blog.uu59.org/2013-09-16-grep-token-ruby.html&quot;&gt;uu59のメモ | git-grep-token-ruby作った（けど低品質）&lt;/a&gt;が便利そうだったので&lt;a href=&quot;http://rubygems.org/gems/parser&quot;&gt;parser&lt;/a&gt;でやってみた。&lt;/p&gt;
+&lt;p&gt;GitHubに上げたけど誰も見てないだろうと思って&lt;code&gt;git push -f&lt;/code&gt;をバシバシ使ってたら、&lt;a href=&quot;https://twitter.com/uu59/statuses/380315860381859840&quot;&gt;なかったことにしたコミットのほうにリンクされて&lt;/a&gt;冷や汗が出た。&lt;/p&gt;
+&lt;p&gt;オリジナルのgit-grep-token-rubyではripperを使ってコードをパースしているのだが、ripperから出力される構文木はやや複雑で扱いづらいところがある。Rubyのコードをパースするライブラリはripperの他にもいくつかあり、parserというシンプルすぎる名前のライブラリが一番後発で使いやすそうだったのでこれを使うことにした。調べた内容については&lt;a href=&quot;http://qiita.com/vzvu3k6k/items/dd45ad293ae2d60c7a4e&quot;&gt;Rubyのコードをパースするライブラリ&lt;/a&gt;というタイトルでまとめた。内容が浅すぎてあまりまとまってない。&lt;/p&gt;
+&lt;p&gt;parserは扱いやすいASTを出力してくれるが、複雑なコードではパースが失敗することがある。ripperを使ってparser式の簡潔なASTを生成したほうが楽なのではないかとも思うが、それはparserの作者も考えたはずで、&lt;q cite=&quot;http://whitequark.org/blog/2012/10/02/parsing-ruby/&quot;&gt;Unless you’re implementing something that obeys the garbage-in garbage-out rule, Ripper isn’t very useful. To make it worse, there isn’t a cross-platform gemification of Ripper, or at least I was unable to find one.&lt;/q&gt;というあたり、特に後者が許容できなかったのだろうか。&lt;/p&gt;
+&lt;h2&gt;関連&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://watson1978.github.io/blog/2012/12/09/find-methods/&quot;&gt;短いメソッドは grep で探すの大変ですよね - Watson’s Blog&lt;/a&gt; - ripperを利用したトークン単位のRubyのソースコード検索&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://endofline.wordpress.com/2010/04/18/ruby_scope/&quot;&gt;RubyScope | End of Line&lt;/a&gt; - Rubyのソースコード用のgrep的なツール。高度な機能があるらしいが、手元ではうまく動かない。GitHubのリポジトリは2010年で更新が止まっている。パーサーには&lt;a href=&quot;https://rubygems.org/gems/ruby_parser&quot;&gt;ruby_parser&lt;/a&gt;を使っている。&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2013/08/06/slideshare-tileview.user.js</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2013/08/06/slideshare-tileview.user.js.html"/>
+    <title>SlideShareのスライドをタイル状に表示するユーザースクリプトを作った</title>
+    <published>2013-08-06T00:00:00+09:00</published>
+    <updated>2013-08-06T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/vzvu3k6k/slideshare-tileview.user.js&quot;&gt;vzvu3k6k/slideshare-tileview.user.js · GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;a href=&quot;http://www.slideshare.net/Erdbeervogel/coaching-for-life-aka-agile-coaching-sure-thing-what-about-life-coaching-in-agile-thinking&quot;&gt;
+  &lt;img alt=&quot;高度に発達したパワーポイントはスタイリッシュ写真集と区別がつかない。&quot; src=&quot;/memo/img/slideshare-tileview.png&quot; class=&quot;thumbnail&quot;&gt;
+&lt;/a&gt;
+&lt;p&gt;スライドをざっと見渡すのに便利。右下のボタンをクリックするとタイル表示モードになる。スライドをクリックすると通常のモードで見れる。&lt;/p&gt;
+&lt;p&gt;ボタンのアイコンはどうしようかと思ったけど、Unicodeの文字一覧みたいなページを見てたらそれっぽい文字があったので、それを使うことにした。&lt;/p&gt;
+&lt;p&gt;ページ数を変更するテキストボックスをクリックしたらなぜかトグルボタンも押されたことになるバグが出て、てっきりSlideShare側のスクリプトが悪さをしてるんだと思ってたけど、
+トグルボタンじゃなくて親要素にイベントハンドラを設定していたのが原因だった。「SlideShareのスクリプトが変な動きをする」とかコミットメッセージに書いたままpushするところだった。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2013/04/03/json-gem-compile-option</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2013/04/03/json-gem-compile-option.html"/>
+    <title>OpenFastLadderをインストールしようとしたらCFLAGSを書き直してJSON gemにpull requestを送ることになった</title>
+    <published>2013-04-03T00:00:00+09:00</published>
+    <updated>2013-04-03T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/fastladder/fastladder&quot;&gt;OpenFastLadder&lt;/a&gt;をダウンロードして&lt;code&gt;bundle install&lt;/code&gt;してたらjson 1.7.7のインストールでエラーが出たので原因を調べた。&lt;/p&gt;
+&lt;p&gt;エラーメッセージは&lt;/p&gt;
+&lt;pre&gt;
+Building native extensions.  This could take a while...
+ERROR:  Error installing json:
+	ERROR: Failed to build gem native extension.
+
+        /usr/bin/ruby19 extconf.rb
+creating Makefile
+
+make
+compiling generator.c
+cc1: エラー: ‘-O’ への引数は非負整数であるべきです
+make: *** [generator.o] エラー 1
+
+
+Gem files will remain installed in /usr/local/lib/ruby/gems/1.9.1/gems/json-1.7.7 for inspection.
+Results logged to /usr/local/lib/ruby/gems/1.9.1/gems/json-1.7.7/ext/json/ext/generator/gem_make.out
+&lt;/pre&gt;
+&lt;p&gt;というもの。エラーメッセージでそのままググってみたけど似た事例が出てこない。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;/usr/local/lib/ruby/gems/1.9.1/gems/json-1.7.7/ext/json/ext/generator/Makefile&lt;/code&gt;を見たらCFLAGSに&lt;code&gt;-O3fast&lt;/code&gt;というオプションがあった。これがエラーの原因らしい。Makefileは同じディレクトリのextconf.rbというファイルで生成されているようだ。見てみると&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;unless $CFLAGS.gsub!(/ -O[\dsz]?/, ' -O3')
+  $CFLAGS &amp;lt;&amp;lt; ' -O3'
+end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;という処理があった。ここで$CFLAGSの&lt;code&gt;-Ofast&lt;/code&gt;が&lt;code&gt;-O3fast&lt;/code&gt;に置換されている。&lt;/p&gt;
+&lt;p&gt;改めてgccのマニュアルを読んでみると、&lt;a href=&quot;http://gcc.gnu.org/onlinedocs/gcc-4.6.3/gcc/Optimize-Options.html#index-Ofast-686&quot;&gt;&lt;code&gt;-Ofast&lt;/code&gt;&lt;/a&gt;は&lt;code&gt;-O3&lt;/code&gt;を有効にしたうえでさらにいくつかの最適化を有効にするというものだった。Gentooのドキュメント（&lt;a href=&quot;http://en.gentoo-wiki.com/wiki/CFLAGS&quot;&gt;CFLAGS - Gentoo Linux Wiki&lt;/a&gt;, &lt;a href=&quot;http://www.gentoo.org/doc/ja/gcc-optimization.xml&quot;&gt;Gentoo Linux ドキュメント – コンパイル最適化ガイド&lt;/a&gt;）を読むと、&lt;code&gt;-O3&lt;/code&gt;はgcc 4.xでは非推奨だし、&lt;code&gt;-Ofast&lt;/code&gt;で有効になる&lt;a href=&quot;http://gcc.gnu.org/onlinedocs/gcc-4.6.3/gcc/Optimize-Options.html#index-ffast_002dmath-847&quot;&gt;&lt;code&gt;-ffast-math&lt;/code&gt;&lt;/a&gt;も、実装がIEEEやISOの数学関数の仕様を順守していることを前提としたコードでは不正な結果を出力する可能性があるので&lt;code&gt;-O&lt;/code&gt;オプションでは無効にされているとのこと。深く考えずに、なんか早くなりそうだからCFLAGSに入れてしまったが、こちらも軽い気持ちで手を出してはいけない雰囲気のオプションだった。&lt;/p&gt;
+&lt;p&gt;とりあえず&lt;code&gt;/etc/make.conf&lt;/code&gt;の&lt;code&gt;-Ofast&lt;/code&gt;を外して&lt;code&gt;-Os&lt;/code&gt;に書き換えたが、またしても同じエラーが出る。extconf.rb内の$CFLAGSが書き換わっていない。$CFLAGSを提供しているmkmfのソースを確認すると、$CFLAGSはrbconfigというライブラリから取得していて、これは&lt;q cite=&quot;http://rurema.clear-code.com/1.9.3/library/rbconfig.html&quot;&gt;Ruby インタプリタ作成時に設定された情報を格納したライブラリ&lt;/q&gt;なのだそうだ。rubyを入れ直したら$CFLAGSに変更が反映され、JSON gemのインストールに成功した。&lt;/p&gt;
+&lt;p&gt;せっかくなのでJSONのextconf.rbを&lt;code&gt;-Ofast&lt;/code&gt;に対応させてpull requestを送ることにした。&lt;a href=&quot;http://gcc.gnu.org/onlinedocs/gcc-4.6.3/gcc/Optimize-Options.html#index-Ofast-686&quot;&gt;&lt;code&gt;-O&lt;/code&gt;オプションは最後に指定されたものが有効になる&lt;/a&gt;ので、&lt;code&gt;gsub!&lt;/code&gt;を使って置換したり条件分岐したりするのはやめて、何も考えずに&lt;code&gt;-O3&lt;/code&gt;を付け足すという処理にした。&lt;code&gt;$CFLAGS&lt;/code&gt;が&lt;code&gt;-O&lt;/code&gt;オプションで始まってると正常に置換できないという問題もついでに解決できるし、今後gccの&lt;code&gt;-O&lt;/code&gt;オプションが追加されてもたぶん問題ない。&lt;/p&gt;
+&lt;p&gt;もうひとつ気になったのが&lt;code&gt;generator/extconf.rb&lt;/code&gt;の&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;  unless $DEBUG &amp;amp;&amp;amp; !$CFLAGS.gsub!(/ -O[\dsz]?/, ' -O0 -ggdb')
+    $CFLAGS &amp;lt;&amp;lt; ' -O0 -ggdb'
+  end
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;というコード。$DEBUGがfalseのときにデバッグ用っぽいオプションが追加されている。&lt;code&gt;parser/extconf.rb&lt;/code&gt;のほうは&lt;code&gt;if $DEBUG &amp;amp;&amp;amp; !$CFLAGS.gsub!(/ -O[\dsz]?/, ' -O0 -ggdb')&lt;/code&gt;になっている。&lt;code&gt;generator&lt;/code&gt;のほうが条件式を間違えてるようだ。ついでにこれも修正して&lt;a href=&quot;https://github.com/flori/json/pull/166&quot;&gt;pull requestを送ってみた&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;それにしても、gentooのドキュメントでは&lt;q&gt;プラス面よりもマイナス面が勝っています&lt;/q&gt;とまで書かれている&lt;code&gt;-O3&lt;/code&gt;をJSON gemが有効にしてるのは不思議に思える。日頃からソフトのインストールはほとんどパッケージマネージャーに頼りきりで、自分ではMakefileなどを触ったりしないので事情がよく分からない。&lt;a href=&quot;https://github.com/ruby/ruby&quot;&gt;rubyのソース&lt;/a&gt;を取ってきて&lt;code&gt;autoconf;./configure&lt;/code&gt;して生成されたMakefileを見てみると&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;CFLAGS = ${cflags} $(ARCH_FLAG)
+cflags =  ${optflags} ${debugflags} ${warnflags}
+optflags = -O3 -fno-fast-math
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;こうなっていた。&lt;code&gt;configure&lt;/code&gt;のほうには&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;if test &amp;quot;$GCC&amp;quot; = yes; then
+    linker_flag=-Wl,
+    : ${optflags=-O3}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;こんな記述がある。optflagsのデフォルト値を&lt;code&gt;-O3&lt;/code&gt;にしているらしい。本体が&lt;code&gt;-O3&lt;/code&gt;を使っている以上、ライブラリが使ってはいけない道理はないが、実際のところどれほど効き目があるのだろうか。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2013/03/18/ruby-toolbox-show-readme</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2013/03/18/ruby-toolbox-show-readme.html"/>
+    <title>Ruby ToolboxでプロジェクトのREADMEをその場で開くユーザースクリプト</title>
+    <published>2013-03-18T00:00:00+09:00</published>
+    <updated>2013-03-18T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/vzvu3k6k/ruby-toolbox-show-readme.user.js&quot;&gt;vzvu3k6k / ruby-toolbox-show-readme.user.js&lt;/a&gt;&lt;/p&gt;
+&lt;img src=&quot;/memo/img/ruby-toolbox-show-readme-image.png&quot;&gt;
+&lt;p&gt;Rubyのライブラリをジャンルごとに分類して人気順に配列している&lt;a href=&quot;https://www.ruby-toolbox.com/&quot;&gt;The Ruby Toolbox&lt;/a&gt;。便利なんだけど、ライブラリの説明文が大雑把すぎてそれぞれの違いがよく分からないことがある。READMEをその場で読めれば便利なのではないかと思って作った。虫眼鏡アイコンをクリックすると、GithubのAPIでリポジトリからREADMEが取得され、挿入される。&lt;/p&gt;
+&lt;p&gt;READMEは&lt;a href=&quot;http://developer.github.com/v3/repos/contents/&quot;&gt;GithubのAPI&lt;/a&gt;でHTMLに変換されたものをそのままページ内に追加している。HTMLにJavaScriptが混入されないように配慮されてはいるが（&lt;a href=&quot;https://github.com/vzvu3k6k/Spoon-Knife/blob/fb6b9709e13b75e03c13c76302c7fe020d1ef83a/README.md&quot;&gt;scriptタグ、onerror=“alert(1)”、&lt;a href=&quot;javascript:...&quot;&gt;などはHTML化で消される&lt;/a&gt;）、もしかしたら抜け道があるかもしれない。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;pre&lt;/code&gt;タグの1行あたりの字数が多いと横方向にはみ出してしまう。折り返したり、表示域を制限して横スクロールしないと見れないようにすると不便なのでそのままにした。&lt;/p&gt;
+&lt;p&gt;RubygemやGithubのセクションの右上の虫眼鏡アイコンにポインタを乗せると依存情報やコントリビューターの一覧などが出てくることに、このスクリプトを書いていて初めて気づいた。最初、あるプロジェクトだけgemの依存関係とかが表示されていて（たまたまポインタが虫眼鏡の上を通ったらしい）、「なんでこいつだけこんな情報が出てるんだ？」としばらく悩んだ。READMEの読み込みはやや重い処理だと思うので、マウスオーバーではなくクリックで実行されるようにしている。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2013/03/16/ldr-better-compact-mode</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2013/03/16/ldr-better-compact-mode.html"/>
+    <title>Livedoor Readerの本文非表示モードを改善するユーザースタイルシートとユーザースクリプト</title>
+    <published>2013-03-16T00:00:00+09:00</published>
+    <updated>2013-03-16T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;http://userstyles.org/styles/84533/livedoor-reader-title-only-compact-mode&quot;&gt;Livedoor Reader: Title-only compact mode - Themes and Skins for Livedoor - userstyles.org&lt;/a&gt;&lt;/p&gt;
+&lt;dl&gt;
+  &lt;dt&gt;Before&lt;/dt&gt;
+  &lt;dd&gt;&lt;img alt=&quot;default image&quot; style=&quot;max-width: 70%&quot; src=&quot;/memo/img/ldr-title-only-mode-default.png&quot;&gt;&lt;/dd&gt;
+  &lt;dt&gt;After&lt;/dt&gt;
+  &lt;dd&gt;&lt;img alt=&quot;demo image&quot; style=&quot;max-width: 70%&quot; src=&quot;/memo/img/ldr-title-only-mode-custom.png&quot;&gt;&lt;/dd&gt;
+&lt;/dl&gt;
+&lt;p&gt;タイトル以外をばっさり消して、文字のサイズをいじったりすると一覧性が上がって見やすくなった。&lt;/p&gt;
+&lt;p&gt;ちなみにGoogle Readerのヘッドラインモードはこんな感じ。&lt;/p&gt;
+&lt;img style=&quot;max-width: 70%&quot; alt=&quot;Google Reader image&quot; src=&quot;/memo/img/ldr-title-only-mode-google-reader-listview.png&quot;&gt;
+&lt;p&gt;タイトルの横に記事の冒頭の文章が並んでいるのが便利。CSSを使って再現しようとしてみたがどうにもならなかった。Google Readerは&lt;code&gt;&amp;lt;span class=&amp;quot;snippet&amp;quot;&amp;gt;&lt;/code&gt;という専用の要素を用意しているようだ。&lt;/p&gt;
+&lt;p&gt;ついでにフィードごとに表示モードを覚える機能をつけたユーザースクリプトも書いた。&lt;a href=&quot;https://github.com/vzvu3k6k/LDR-Title-Only-Mode&quot;&gt;vzvu3k6k/LDR-Title-Only-Mode&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://reader.livedoor.com/js/reader_main.0.3.6.js&quot;&gt;reader_main.0.3.6.js&lt;/a&gt;の&lt;code&gt;Control.compact()&lt;/code&gt;（1518行目）と&lt;a href=&quot;http://userscripts.org/scripts/review/34576&quot;&gt;“HatebuComment on LDR” - Userscripts.org&lt;/a&gt;を参考にした。&lt;/p&gt;
+&lt;p&gt;あとで&lt;code&gt;Control.title_only&lt;/code&gt;が別のキーに割り当てられたとき&lt;code&gt;&amp;quot;タイトル以外を非表示にしました。&amp;quot; + TITLE_ONLY_KEY + &amp;quot;で元に戻ります&amp;quot;&lt;/code&gt;の&lt;code&gt;TITLE_ONLY_KEY&lt;/code&gt;が書き換わらないのがちょっと気になる。&lt;/p&gt;
+&lt;h2&gt;参考&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;http://digimaga.net/2013/03/only-one-google-reader&quot;&gt;Googleリーダーの代替サービスを試してみたけれどダメだった話&lt;/a&gt;&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2013/03/15/ldr-rename-feed</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2013/03/15/ldr-rename-feed.html"/>
+    <title>Livedoor Readerにフィードをリネームする機能を追加するユーザースクリプト</title>
+    <published>2013-03-15T00:00:00+09:00</published>
+    <updated>2013-03-15T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;https://github.com/vzvu3k6k/LDR-Rename-Feed&quot;&gt;LDR-Rename-Feed&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;:rename&lt;/code&gt;で今開いているフィードをリネームできる。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;a href=&quot;http://googleblog.blogspot.jp/2013/03/a-second-spring-of-cleaning.html&quot;&gt;Google Readerが廃止されるという告知&lt;/a&gt;があってから、&lt;a href=&quot;http://reader.livedoor.com/&quot;&gt;Livedoor Reader&lt;/a&gt;が移行先として注目を集めている。現在”Livedoor Reader”でググると、検索結果の上位にGoogle Readerからの移行の手順を解説した記事がずらりと並ぶ。&lt;/p&gt;
+&lt;p&gt;Google ReaderにあってLivedoor Readerにない機能の一つに、フィードのリネームがある。どうでもよさそうな機能だけど、&lt;a href=&quot;http://pipes.yahoo.com/&quot;&gt;Yahoo! Pipes&lt;/a&gt;のユーザーにとっては結構重要。これはネット上から情報を取得、加工してJSONやRSSなどで出力する「パイプ」を作れるサービスで、たとえばフィードを公開していない日記サイトをスクレイピングしてRSSを作ったりできる。パイプには利用者がパラメーターを設定できるものがあり、これによって、&lt;a href=&quot;http://pipes.yahoo.com/pipes/pipe.info?_id=fb4ff2206c3e3aec2c49072ce7c60d53&quot;&gt;特定のユーザーの最近のgistの一覧をRSSとして出力する&lt;/a&gt;とか、&lt;a href=&quot;http://pipes.yahoo.com/pipes/pipe.info?_id=TssmX7bb2xGYLar_l7okhQ&quot;&gt;指定したはてなグルーブの日記のフィードをまとめる&lt;/a&gt;といったことができるのだが、パイプから出力されるフィードのタイトルを変更する機能はない。前者のパイプではAさんのgist一覧とBさんのgist一覧のタイトルが同じ”gist-updates”になってしまう。&lt;/p&gt;
+&lt;p&gt;「どうせ読むんだからタイトルなんかどうでもいい」と割り切るのもありかと思うが、せっかくなのでリネームっぽい動作をするユーザースクリプトを書いた。&lt;a href=&quot;http://karafuto50.blog117.fc2.com/?no=130&quot;&gt;Karafuto Blog - livedoor Readerのフィードの名前を変更する User JavaScript&lt;/a&gt;を参考にした。&lt;/p&gt;
+&lt;p&gt;追記：最近のgistのフィードは&lt;code&gt;https://gist.github.com/&amp;lt;username&amp;gt;.atom&lt;/code&gt;で見れる。&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2012/09/20/restart-tumblr-digging-bookmarklet</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2012/09/20/restart-tumblr-digging-bookmarklet.html"/>
+    <title>Tumblrのダッシュボードとかで潜った位置を記録して再開するブックマークレット</title>
+    <published>2012-09-20T00:00:00+09:00</published>
+    <updated>2012-09-20T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;h2&gt;追記（2013/06/09）&lt;/h2&gt;
+&lt;p&gt;アップデートしたものをHatena::Letに置いた。&lt;a href=&quot;http://let.hatelabo.jp/vzvu3k6k/let/gYC-x-Tt9cbcYQ&quot;&gt;Tumblr dashboard bookmark - Hatena::Let&lt;/a&gt;&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;[僕は”あした”から”ホンキ”をだす, ある時刻のdashboardに戻る方法](&lt;a href=&quot;http://cineraria.tumblr.com/post/31330063418/dashboard&quot;&gt;http://cineraria.tumblr.com/post/31330063418/dashboard&lt;/a&gt; “僕は”あした”から”ホンキ”をだす, ある時刻のdashboardに戻る方法”)に触発されて&lt;a href=&quot;javascript:(function()%7Bvar%20c%3Ddocument.viewport.getScrollOffsets().top%2Cb%3D%24%24('%23posts%20.post%5Bid%5E%3D%22post_%22%5D').detect(function(a)%7Breturn%20Element.cumulativeOffset(a).top%3Ec%7D)%2Ca%3DparseInt(b.id.replace(%22post_%22%2C%22%22)%2C10)%2B1%2Ca%3Dwindow.next_page.replace(%2F%5Cd%2B%24%2F%2C%22%22)%2Ba%2Cd%3Da.replace(%2F%5Ehttp%3A%5C%2F%5C%2Fwww%5C.tumblr%5C.com%5C%2F%2F%2C%22%22)%2Ca%3D(new%20Element(%22a%22%2C%7Bhref%3Aa%7D)).update(d)%3Bb.insert(%7Btop%3Aa%7D)%7D)()&quot;&gt;ブックマークレット&lt;/a&gt;を作った。開くと今読んでいるポストの上部にリンクが追加される。そのリンクをブックマークしておくと、そこからダッシュボード潜りを再開できる。auto pagingする場所ではだいたい動くので、タグ検索画面(&lt;a href=&quot;http://www.tumblr.com/tagged/bookmarklet&quot;&gt;http://www.tumblr.com/tagged/bookmarklet&lt;/a&gt;)とかでも使える。&lt;/p&gt;
+&lt;p&gt;元ソースは以下。Tumblrで使われているprototype.jsに依存している。&lt;a href=&quot;http://userscripts.org/scripts/show/137667&quot; title=&quot;Tumblr Tornado for Greasemonkey&quot;&gt;Tumblr Tornado&lt;/a&gt;や、Tumblrの&lt;code&gt;start_observing_key_commands&lt;/code&gt;関数を参考にした。&lt;/p&gt;
+&lt;pre&gt;
+&lt;code&gt;
+(function(){
+    var currentPosition = document.viewport.getScrollOffsets().top;
+    var currentPost = $$('#posts .post[id^=&quot;post_&quot;]').detect(function(post){
+        return Element.cumulativeOffset(post).top &gt; currentPosition;
+    });
+
+    var id = (parseInt(currentPost.id.replace(&quot;post_&quot;, &quot;&quot;), 10) + 1),
+        href = window.next_page.replace(/\d+$/, &quot;&quot;) + id,
+        label = href.replace(/^http:\/\/www\.tumblr\.com\//, &quot;&quot;),
+        link = new Element('a', {href: href}).update(label);
+    currentPost.insert({top: link});
+})();
+&lt;/code&gt;
+&lt;/pre&gt;
+&lt;p&gt;ダッシュボードだけで動作するバージョンを作ってから&lt;a href=&quot;http://userscripts.org/&quot; title=&quot;Userscripts.org: Power-ups for your browser&quot;&gt;Userscripts.org&lt;/a&gt;を眺めてみたら似たスクリプトがあった。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://userscripts.org/scripts/show/21790&quot; title=&quot;Tumblr Dashboard Marker for Greasemonkey&quot;&gt;Tumblr Dashboard Marker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://userscripts.org/scripts/show/77050&quot; title=&quot;Tumblr Dashboard Bookmarker for Greasemonkey&quot;&gt;Tumblr Dashboard Bookmarker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://userscripts.org/scripts/show/94042&quot; title=&quot;Tumblr Bookmarker for Greasemonkey&quot;&gt;Tumblr Bookmarker&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;はじめの2つはブックマークしたところまでひたすらスクロールしてロードしつづける方式。&lt;/p&gt;
+&lt;p&gt;最後の&lt;a href=&quot;http://userscripts.org/scripts/show/94042&quot; title=&quot;Tumblr Bookmarker for Greasemonkey&quot;&gt;Tumblr Bookmarker for Greasemonkey&lt;/a&gt;は’&lt;a href=&quot;http://www.tumblr.com/dashboard/1000/&quot;&gt;http://www.tumblr.com/dashboard/1000/&lt;/a&gt;’ + ブックマークしたID + ‘?lite’に移動する方式。ポスト上部のブックマークボタンをクリックするとサイドバーのリストに日時付きでブックマークが追加されるようになっている。リッチ。&lt;code&gt;@match&lt;/code&gt;に&lt;code&gt;http://www.tumblr.com/tagged*&lt;/code&gt;なども含まれているからタグ検索画面でも使えそうに思えるが、ダッシュボード用のリンクしか生成されない。作者は自作のTumblr用ユーザースクリプトをまとめた&lt;a href=&quot;http://missing-e.com/&quot; title=&quot;Missing e - The original browser extension for Tumblr!&quot;&gt;Missing e&lt;/a&gt;という拡張を公開しており、こちらでは改善されているのかもしれない。試していない。&lt;/p&gt;
+&lt;p&gt;また、&lt;a href=&quot;http://userscripts.org/scripts/show/137667&quot; title=&quot;Tumblr Tornado for Greasemonkey&quot;&gt;Tumblr Tornado&lt;/a&gt;は単体で複数の機能を提供するユーザースクリプトだが、auto pagingするとロケーションバーを書き換える機能がある。潜っている位置を保存したければ何も考えずにブックマークするだけでいい。上記のブックマークレットをダッシュボード以外で動作させるにあたって、Tumblr Tornadoの&lt;code&gt;enhistory&lt;/code&gt;関数が参考になった。&lt;/p&gt;
+&lt;p&gt;というわけで、わざわざ作る必要もなかった気がしないでもないが、作ってしまったので公開する。ユーザースクリプトをインストールするのが面倒な人とかには需要があるかもしれない。&lt;/p&gt;
+&lt;h2&gt;関連&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/vzvu3k6k/tumblr-set_dashboard_permalink_as_scroll.user.js&quot;&gt;vzvu3k6k/tumblr-set_dashboard_permalink_as_scroll.user.js - GitHub&lt;/a&gt; - スクロールに応じてダッシュボードのpermalinkをlocationに設定するユーザースクリプト&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <id>https://vzvu3k6k.tk/memo/2012/08/28/avatar_image_search-userjs</id>
+    <link type="text/html" rel="alternate" href="https://vzvu3k6k.tk/memo/2012/08/28/avatar_image_search-userjs.html"/>
+    <title>TwitterやFacebookのアイコンを画像検索してヒット数とかを表示するユーザースクリプト</title>
+    <published>2012-08-28T00:00:00+09:00</published>
+    <updated>2012-08-28T00:00:00+09:00</updated>
+    <author>
+      <name>vzvu3k6k</name>
+      <uri>https://vzvu3k6k.tk/</uri>
+    </author>
+    <content type="html">&lt;p&gt;元ネタ：&lt;/p&gt;
+&lt;blockquote class=&quot;twitter-tweet&quot; lang=&quot;ja&quot;&gt;&lt;p&gt;TwitterのアイコンやFacebookプロフィールをGoogle画像検索とかして、有名人の写真や既存の画像を丸パクリしているかどうか検索結果数を表示する拡張機能とかあればいいのか&lt;/p&gt;&amp;mdash; ǝunsʇo ıɯnɟɐsɐɯさん (@otsune) &lt;a href=&quot;https://twitter.com/otsune/status/239945208232546304&quot; data-datetime=&quot;2012-08-27T04:39:30+00:00&quot;&gt;8月 27, 2012&lt;/a&gt;&lt;/blockquote&gt;
+&lt;p&gt;TwitterやFacebookのユーザーページにアクセスすると、そのユーザーのアイコンをGoogleで画像検索して検索結果数を表示する。「この画像の最良の推測結果」があればそれも表示する。&lt;/p&gt;
+&lt;p&gt;動作している様子はこんな感じ。“約 15,200 件”とかいうのが検索結果数で、括弧内が「この画像の最良の推測結果」。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;img src=&quot;/memo/img/avatar_image_search_userjs_tw-twitter.png&quot; alt=&quot;Twitter @twitter&quot; /&gt;&lt;/li&gt;
+&lt;li&gt;&lt;img src=&quot;/memo/img/avatar_image_search_userjs_fb-facebookjapan.png&quot; alt=&quot;Facebook Japan&quot; /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;ul&gt;
+&lt;li&gt;検索結果はGM_*Value()でキャッシュしている。
+&lt;ul&gt;
+&lt;li&gt;キャッシュにアクセスしてみて古かったら消すだけなので、一度見ただけのユーザーのキャッシュなども際限なく蓄積される。cache.clear()とかabout:configを利用して適宜消してください。&lt;/li&gt;
+&lt;li&gt;sessionStorageを使うつもりだったが、same-originな他のスクリプト（ページ内のスクリプトや他のユーザースクリプト）からも読み書きできるのが気になったのでやめた。&lt;/li&gt;
+&lt;li&gt;sessionStorageを使う場合は&lt;pre&gt;&lt;code&gt;var cache = {get: function(k){sessionStorage.getItem(prefix + k)}, set: function(k, v){sessionStorage.setItem(prefix + k, v)}};&lt;/code&gt;&lt;/pre&gt;などと書き換えてください。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;siteを編集すればTwitterやFacebook以外でも動くようにできるはず。&lt;/li&gt;
+&lt;li&gt;GM_xmlhttpRequest()を使ってクロスドメイン通信をしているので、Firefox + Greasemonkeyの環境以外ではおそらく動かない。
+&lt;ul&gt;
+&lt;li&gt;GM_*と同様の動きをするラッパーとかを用意してmanifest.jsonなどを書けばGoogle Chromeでも動かせると思う。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;検索結果を受け取るコールバック関数に、検索結果を挿入するために必要な情報を渡すあたりが綺麗に書けなかった。putResult, handleSearchResult.bind(this, putResult)のあたり。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;pre&gt;&lt;code&gt;
+// ==UserScript==
+// @name            Avatar Image Automatic Search
+// @description     Search avatar images in Google
+// @version         0.1
+// @license         public domain
+// @match           https://twitter.com/*
+// @match           http://www.facebook.com/*
+// @match           https://plus.google.com/*
+// ==/UserScript==
+
+var site = [{url: /^https?:\/\/twitter\.com\/\w+\/?$/,
+             avatarSelector: &quot;.avatar.size128&quot;,        // avatar img
+             resultSelector: &quot;.profile-card-inner&quot;},   // append result here
+            {url: /^https?:\/\/www\.facebook\.com\/\w+\/?$/,
+             avatarSelector: &quot;.profilePic img&quot;,
+             resultSelector: &quot;.name h2&quot;},
+            {url: /^https?:\/\/plus.google.com\/\d+\/posts\/?$/,
+             avatarSelector: &quot;.l-tk&quot;,
+             resultSelector: &quot;.KC&quot;}];
+
+var cache = {
+    lifetime: 86400000, // millsecond (86400000 ms = 1 day)
+    get: function(key){
+        var t = GM_getValue(key + &quot;_time&quot;);
+        if(t === undefined) return;
+        if(cache.lifetime &lt; new Date - (+t)){
+            GM_deleteValue(key);
+            GM_deleteValue(key + &quot;_time&quot;);
+        }else{
+            return GM_getValue(key);
+        }
+    },
+    set: function(key, value){
+        GM_setValue(key, value);
+        GM_setValue(key + &quot;_time&quot;, +new Date + &quot;&quot;); // 大きな数値を入れると失敗するらしいので文字列に変換して保存
+    },
+    clear: function(){  // use manually
+        for(var key in GM_listValues())
+            GM_deleteValue(key);
+    }
+};
+
+if(GM_getValue(&quot;noCache&quot;)){
+    cache.get = cache.set = function(){};
+    cache.clear();
+}
+
+for(var i = 0, l = site.length; i &lt; l; i++){
+    if(site[i].url.test(location.href)){
+        var avatarElement = document.querySelector(site[i].avatarSelector);
+        if(!avatarElement) continue;
+        var avatarUrl = URLabsolutify(avatarElement.src);
+
+        var resultContainer = document.createElement(&quot;div&quot;);
+        resultContainer.id = &quot;avatar_image_search_user_js_result&quot;;
+        document.querySelector(site[i].resultSelector).appendChild(resultContainer);
+
+        function putResult(result){
+            resultContainer.appendChild(result);
+            cache.set(avatarUrl, resultContainer.innerHTML);
+        }
+
+        var resultHtml = cache.get(avatarUrl);
+        if(resultHtml){
+            resultContainer.innerHTML = resultHtml;
+        }else{
+            var searchUrl = &quot;https://www.google.com/searchbyimage?image_url=&quot;
+                + encodeURIComponent(avatarUrl);
+            GM_xmlhttpRequest({url: searchUrl, method: &quot;GET&quot;, 
+                               onload: handleSearchResult.bind(this, putResult),
+                               onerror: handleSearchError.bind(this, putResult)});
+        }
+        break;
+    }
+}
+
+function URLabsolutify(url){
+    var a = document.createElement(&quot;a&quot;);
+    a.href = url;
+    return a.href;
+}
+
+function handleSearchResult(putResult, response){
+    if(!response.responseXML)
+        response.responseXML = new DOMParser().parseFromString(response.responseText, &quot;text/html&quot;);
+
+    var hitNum = response.responseXML.querySelector(&quot;#resultStats&quot;);
+    var imageSearchLink = document.createElement(&quot;a&quot;);
+    imageSearchLink.href = response.finalUrl;
+    imageSearchLink.textContent = hitNum ? hitNum.firstChild.textContent : &quot;アバター検索：件数取得失敗&quot;;
+
+    var guess = response.responseXML.querySelector('a[style=&quot;font-weight:bold;font-style:italic&quot;]');
+    if(guess){
+        var guessLink = document.createElement(&quot;a&quot;);
+        guessLink.href = &quot;https://www.google.com&quot; + guess.href;
+        guessLink.textContent = &quot;(&quot; + guess.textContent +&quot;)&quot;;
+    }
+
+    var result = document.createDocumentFragment();
+    result.appendChild(imageSearchLink);
+    if(guessLink) result.appendChild(guessLink);
+    putResult(result);
+}
+
+function handleSearchError(putResult, response){
+    var result = document.createElement(&quot;a&quot;);
+    result.textContent = &quot;アバター検索失敗&quot;;
+    result.href = response.finalUrl;
+    putResult(result);
+}
+&lt;/code&gt;&lt;/pre&gt;
+</content>
+  </entry>
+  
+ 
+</feed>

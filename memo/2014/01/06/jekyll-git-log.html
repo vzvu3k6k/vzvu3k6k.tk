@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Jekyllに更新履歴を表示する - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>Jekyllに更新履歴を表示する</h1>
+      <time datetime="2014-01-06">2014-01-06</time>
+    </header>
+    <ul>
+<li><a href="http://tech.nitoyon.com/ja/blog/2012/09/20/moved-completed/">俺の最強ブログ システムが火を噴くぜ - てっく煮ブログ</a></li>
+<li><a href="http://blog.ruedap.com/2013/11/11/github-flow-blog">Pull RequestとCIを使ったGitHub Flowなブログ環境を作ってみた - アインシュタインの電話番号</a></li>
+</ul>
+<p>ブログの記事を黙って修正するのは不誠実なので、修正箇所や修正日時を明示するべきだという考え方がある。しかし、修正が度重なると打ち消し線や「○年○月○日追記:」などが錯綜して読みづらい。記事をGitで管理してGitHubで公開しているのだから、それを使って更新履歴を表示すればいいのではないか。</p>
+<p>上記2つはGitHubのHistoryへのリンクを貼るというアプローチだが、ここでは<a href="http://ssig33.com/text/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%B3%E3%83%84%E3%81%AB%E5%B1%A5%E6%AD%B4%E8%A1%A8%E7%A4%BA%E3%81%99%E3%82%8B%E4%BD%9C%E3%81%A3%E3%81%9F">ssig33.com - コンテンツに履歴表示するもの作った</a>のような形式でページ内に更新履歴を表示してみる。</p>
+<p>JavaScriptから<a href="http://developer.github.com/v3/repos/commits/">GitHubのAPI</a>を叩けばファイルの更新履歴は取れるんだけど、<a href="http://developer.github.com/v3/#rate-limiting">認証していないと1時間あたり60回までしかコールできない</a>し、要素が動的に追加されるとなんとなく落ち着かない感じがする。Jekyllでページを生成するときに更新履歴を書きだすことにした。Gitの操作には<a href="https://rubygems.org/gems/grit">grit</a>を使っている。</p>
+<p>「マークアップを変えた」みたいな本質的ではない変更まで履歴に表示されるのが気にならなくもない。更新履歴に出したくないコミットのメッセージには<code>[minorfix]</code>という文字列を入れる、みたいなルールを決めるといいかもしれない。</p>
+<p>ところで、Gitのコミットログは改変できるし、GitHub上のリポジトリも<code>git push -f</code>で上書きできるので、「この間まで○○という記述があったのに、いつの間にか消えている。こっそり書き換えたに違いない」と言われると反証するのが難しい気がする。この点については更新履歴を保存してない大多数の他のブログサービスと変わりがない。</p>
+<h2>使い方</h2>
+<ol>
+<li><a href="https://github.com/vzvu3k6k/vzvu3k6k.github.com/tree/source/_plugins/git_log.rb">_plugins/git_log.rb</a>をコピーして、ソース内のURLを修正する。</li>
+<li><a href="https://github.com/vzvu3k6k/vzvu3k6k.github.com/tree/source/_layouts/post.html">_layout/post.html</a>のように、更新履歴を表示したいページに<code>{% git_log %}</code>を挿入する。</li>
+</ol>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/a5ae1db8e00d757f80446e6b38ee43ae303d6d0c"><time>2014-04-18T23:53:31+09:00</time> <span>Minor changes</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/e710afb3d122183d874f2f36b3ae3703931c31d1"><time>2014-01-06T21:51:11+09:00</time> <span>Escape {% git_log %}</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/d6d4ff506b057f651d250fa2e8512474931baa18"><time>2014-01-06T21:43:20+09:00</time> <span>使い方を追記</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/d1ee3a5edd395fcad3cf9a8ae25874f1e79508b8"><time>2014-01-06T21:42:36+09:00</time> <span>[ssig33.com - コンテンツに履歴表示するもの作った]の位置を修正</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/55e5bfd3168edbe45495703f550bde89cb7e98b9"><time>2014-01-06T21:24:57+09:00</time> <span>Add a post</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Livedoor Readerにフィードをリネームする機能を追加するユーザースクリプト - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>Livedoor Readerにフィードをリネームする機能を追加するユーザースクリプト</h1>
+      <time datetime="2013-03-15">2013-03-15</time>
+    </header>
+    <p><a href="https://github.com/vzvu3k6k/LDR-Rename-Feed">LDR-Rename-Feed</a></p>
+<p><code>:rename</code>で今開いているフィードをリネームできる。</p>
+<hr />
+<p><a href="http://googleblog.blogspot.jp/2013/03/a-second-spring-of-cleaning.html">Google Readerが廃止されるという告知</a>があってから、<a href="http://reader.livedoor.com/">Livedoor Reader</a>が移行先として注目を集めている。現在”Livedoor Reader”でググると、検索結果の上位にGoogle Readerからの移行の手順を解説した記事がずらりと並ぶ。</p>
+<p>Google ReaderにあってLivedoor Readerにない機能の一つに、フィードのリネームがある。どうでもよさそうな機能だけど、<a href="http://pipes.yahoo.com/">Yahoo! Pipes</a>のユーザーにとっては結構重要。これはネット上から情報を取得、加工してJSONやRSSなどで出力する「パイプ」を作れるサービスで、たとえばフィードを公開していない日記サイトをスクレイピングしてRSSを作ったりできる。パイプには利用者がパラメーターを設定できるものがあり、これによって、<a href="http://pipes.yahoo.com/pipes/pipe.info?_id=fb4ff2206c3e3aec2c49072ce7c60d53">特定のユーザーの最近のgistの一覧をRSSとして出力する</a>とか、<a href="http://pipes.yahoo.com/pipes/pipe.info?_id=TssmX7bb2xGYLar_l7okhQ">指定したはてなグルーブの日記のフィードをまとめる</a>といったことができるのだが、パイプから出力されるフィードのタイトルを変更する機能はない。前者のパイプではAさんのgist一覧とBさんのgist一覧のタイトルが同じ”gist-updates”になってしまう。</p>
+<p>「どうせ読むんだからタイトルなんかどうでもいい」と割り切るのもありかと思うが、せっかくなのでリネームっぽい動作をするユーザースクリプトを書いた。<a href="http://karafuto50.blog117.fc2.com/?no=130">Karafuto Blog - livedoor Readerのフィードの名前を変更する User JavaScript</a>を参考にした。</p>
+<p>追記：最近のgistのフィードは<code>https://gist.github.com/&lt;username&gt;.atom</code>で見れる。</p>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/4b8a329e13502c8032a9c3741fe81fec2433c991"><time>2013-11-19T21:42:26+09:00</time> <span>Many changes</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>

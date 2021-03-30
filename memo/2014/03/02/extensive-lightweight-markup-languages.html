@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>軽量マークアップ言語の拡張 - 記録</title>
+  <link rel="alternate" type="application/atom+xml" title="Atom feed" href="/memo/atom.xml" />
+  <link rel="stylesheet" type="text/css" href="/memo/css/post.css">
+</head>
+<body>
+  <article>
+    <header>
+      <h1>軽量マークアップ言語の拡張</h1>
+      <time datetime="2014-03-02">2014-03-02</time>
+    </header>
+    <p>世間には<a href="http://www.methods.co.nz/asciidoc/">AsciiDoc</a>, <a href="http://docutils.sourceforge.net/rst.html">reStructuredText</a>, <a href="http://daringfireball.net/projects/markdown/">markdown</a>といった多種多様な軽量マークアップ言語が存在する。頭ひとつ抜けた感のあるmarkdownの中でも、<a href="http://michelf.ca/projects/php-markdown/extra/">Markdown Extra</a>, <a href="http://fletcherpenney.net/multimarkdown/">MultiMarkdown</a>, <a href="https://help.github.com/articles/github-flavored-markdown">GitHub Flavored Markdown</a>などの亜種変種がひしめきあっている。</p>
+<p>あらゆるニーズを満たす軽量マークアップ言語は作りようがないし、それぞれのアプリケーション固有の機能が必要になることもある。たとえばmention機能（<code>@username</code>と書いたらユーザーページにリンクされるようにして、言及されたユーザーには通知を出す）とか。</p>
+<p>既存のマークアップ言語に拡張機能を追加するのはそれほど容易ではない。正規表現などで適当に置換してしまうと、他の機能と衝突して予期しない結果を生むことがある。たとえば前述のmention機能を実装するとき、<code>source.gsub(/@(\w+)/, '&lt;a href=&quot;/users/\1&quot;&gt;@\1&lt;/a&gt;')</code>などとしてしまうと、<code>[email](mailto:admin@example.com)</code>や<code>ここで`@source`というインスタンス変数が…</code>といったテキストにも反応してしまい、ユーザーの期待とは異なる出力になる。</p>
+<p>衝突を避けるためには、コードブロックやリンクなどの内部では置換しないといった対応が必要になる。しかし、パーサー本体に手を加えるとなると、自分の加えた変更が上流にマージされない場合にはフォーク版をメンテナンスすることになり、コストがかさむ。とはいえ、markdownの構文を独自にパースするのも同様に手間が掛かる。</p>
+<p>以下で軽量マークアップ言語をさまざまなレイヤーで拡張する方法をいくつか紹介する。</p>
+<h2>パーサーのフック機能など</h2>
+<p>特定の要素をパースしたときの処理をフックして変更する機能を備えたり、ユーザーが構文木を操作できるようにしているパーサーもある。</p>
+<p>たとえばRuby用のmarkdownライブラリ<a href="https://github.com/vmg/redcarpet">redcarpet</a>はフック機能を持っている。</p>
+<h2>pandoc –filter</h2>
+<p>Haskell製のマークアップ言語変換ツールであるpandocには、JSONで出力した抽象構文木を外部のプログラムを使って変換する機能がある。外部のプログラムは任意の言語で記述できる。</p>
+<ul>
+<li><a href="http://johnmacfarlane.net/pandoc/scripting.html">Pandoc - Scripting with pandoc</a></li>
+<li><a href="http://efcl.info/2014/0301/res3692/">pandocでMarkdownを拡張しコードをインポート出来るfilterを書く | Web scratch</a> - CodeBlocks内に<code>$import(src/example.js)</code>と書くと<code>src/example.js</code>の内容が展開されるフィルターをJavaScript(node.js)で記述した例。</li>
+</ul>
+<h2>html-pipeline</h2>
+<p><a href="https://github.com/jch/html-pipeline">html-pipeline</a>はHTML（NokogiriのDocument）を変換する単機能のフィルターを繋げて文書を加工していくrubygem。<code>pandoc --filter</code>のASTがJSONではなくHTMLになったものと思えばよい。</p>
+<p>前述のmention機能は<a href="https://github.com/jch/html-pipeline/blob/master/lib/html/pipeline/%40mention_filter.rb">html-pipeline/lib/html/pipeline/@mention_filter.rb</a>として同梱されている。</p>
+<ul>
+<li><a href="https://github.com/increments/qiita-markdown">increments/qiita-markdown</a>: Qiitaのmarkdown拡張。html-pipelineを利用している。</li>
+</ul>
+<h2>reStrucuredTextの拡張可能な構文</h2>
+<p>reStrucuredText(reST)はPythonコミュニティに出自を持つマークアップ言語。Javaに対するJavaDoc、Rubyに対するRDocのPython版のような位置付け。markdownより多機能なので<a href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html">仕様</a>は割と大きめ。</p>
+<p>directiveとroleという拡張性のある構文が用意されている。</p>
+<ul>
+<li>divectives
+<ul>
+<li><a href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#directives">Directives</a></li>
+<li><a href="http://docutils.sourceforge.net/docs/ref/rst/directives.html">reStructuredText Directives</a></li>
+<li><a href="http://docutils.sourceforge.net/docs/howto/rst-directives.html">Creating reStructuredText Directives</a></li>
+</ul>
+</li>
+<li>roles
+<ul>
+<li><a href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#interpreted-text">Interpreted Text</a></li>
+<li><a href="http://docutils.sourceforge.net/docs/ref/rst/roles.html">reStructuredText Interpreted Text Roles</a></li>
+<li><a href="http://docutils.sourceforge.net/docs/howto/rst-roles.html">Creating reStructuredText Interpreted Text Roles</a></li>
+</ul>
+</li>
+</ul>
+<p>前述のmention機能をreSTの枠組みの中で表現するとしたら、roleを使って<code>:at:`username`</code>という感じで書くのではないかと思う。ちょっとまどろっこしい。</p>
+<h2>所感</h2>
+<p>拡張されたmarkdownの仕様とreSTの仕様は結構重複している。「reSTとか仕様大きすぎるよね、markdownぐらいシンプルなのがいいよね」という感じで普及したあと、「大規模な文書もmarkdownで書きたい、機能が足りないからどんどん拡張しよう！」と頑張ったらreSTみたいなものがいくつも出来てしまったという感じなのかもしれない。</p>
+<p>直接markdownに<a href="http://qiita.com/Qiita/items/c686397e4a0f4f11683d#%E6%95%B0%E5%BC%8F%E3%81%AE%E6%8C%BF%E5%85%A5">数式記法を追加</a>したりするより、プレーンなmarkdownにreSTの構文を部分的に導入したほうがいいんじゃないかという気もする。<a href="http://docutils.sourceforge.net/FAQ.html#how-can-i-include-mathematical-equations-in-documents">reSTはdirectiveとroleで数式を記述できる</a>。</p>
+<p>HTMLの出力が得られればOKというケースでは、html-pipelineのようにHTMLに落としてからDOMをいじるのが手軽で現実的だと思う。ただし既存の構文を拡張するとなるとHTMLに変換してからではうまくいかないこともあるはずで、そういう場合にはパーサーをフックしたり、拡張した構文を自分で部分的にパースしたりということになる。</p>
+<h2>元ネタとか</h2>
+<ul>
+<li><a href="http://efcl.info/2014/0301/res3692/">pandocでMarkdownを拡張しコードをインポート出来るfilterを書く | Web scratch</a></li>
+<li><a href="https://twitter.com/r7kamura/status/432422287845777408">「Markdown Parser拡張するよりPipeline風に処理していく方が筋良さそう」</a></li>
+<li><a href="http://hail2u.net/blog/software/markdown-etc.html">Markdownなど - Weblog - Hail2u.net</a></li>
+</ul>
+
+    <footer>
+      <div class="changelog">
+        <h2>この記事の更新履歴</h2>
+        <ul><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/7a2c1279c9f63122e4afdeeb36d5fc950c6146e8"><time>2015-02-15T20:18:54+09:00</time> <span>リンク切れを修正</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/c0eb4c70dddbb5d67e8b2298d47bc238c5a4e8db"><time>2015-02-15T20:18:32+09:00</time> <span>qiita-markdownのリンクを追加</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/5bb630be4b5246e04d388d65b7273fc517c4b7b5"><time>2014-06-15T16:24:31+09:00</time> <span>Remove a needless sentence</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/bc5014c4466ce6a8ecfc1a0a5ef04067ef36009a"><time>2014-04-18T23:57:15+09:00</time> <span>Minor changes</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/884716c987ab717b5df91e67a2dad6e296f2b8d6"><time>2014-04-18T23:16:39+09:00</time> <span>Fix post date of extensive-lightweight-markup-languages.md</span></a></li><li><a href="https://github.com/vzvu3k6k/vzvu3k6k.tk/commit/695bb1d52e6b9e519bb411435c47add6a0ca83cf"><time>2014-03-02T22:46:10+09:00</time> <span>Add a post</span></a></li></ul>
+      </div>
+    </footer>
+  </article>
+  <nav>
+    <a href="/memo/index.html">目次</a>
+  </nav>
+</body>
+</html>
